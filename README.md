@@ -6,16 +6,29 @@ polycrypt-rs is a multi-language cryptographic library wrapper designed to provi
 
 ## Motivation
 
-In response to the challenges faced by a healthcare company client with a 100% PHI data layer field encryption requirement, polycrypt-rs was developed to:
+polycrypt-rs was developed in response to the complex challenges faced by a healthcare company with stringent data protection requirements:
 
-1. Eliminate the need for a distributed de/encryption service, which could introduce latency and become a single point of failure.
-2. Avoid the complexity and maintenance overhead of implementing separate encryption libraries for each programming language used within the organization.
-3. Provide a unified, efficient, and secure cryptographic solution that can be easily integrated across various programming languages and platforms.
+1. Enable the creation of a secure data lake with 100% field-level encryption of PHI at rest and in transit.
+2. Secure sensitive data flowing through event buses and queues without compromising system performance.
+3. Provide developers the freedom to write solutions and services in their preferred languages while maintaining consistent encryption standards.
+4. Eliminate the need for a distributed de/encryption service, which could introduce latency and become a single point of failure.
+5. Avoid the complexity and maintenance overhead of implementing separate encryption libraries for each programming language used within the organization.
+
+## Key Benefits
+
+- **Language Agnostic**: Allows developers to work in their preferred languages (currently supporting Rust, Go, and Python) while maintaining consistent encryption standards.
+- **Performance**: Written in Rust, ensuring high performance, low memory footprint, and the potential for future optimizations through concurrency.
+- **Scalability**: Handles large volumes of data efficiently by running in the same process, avoiding network overhead.
+- **Flexibility**: Supports field-level encryption in JSON objects, ideal for securing specific data elements in complex structures.
+- **Compliance Ready**: Designed to meet stringent data protection requirements, such as 100% PHI encryption in healthcare settings.
+- **Future-Proof**: The Rust foundation provides a pathway for future performance enhancements and feature additions.
+- **Big Data Friendly**: Efficient encryption and decryption make it suitable for big data querying and processing scenarios.
 
 ## Features
 
 - AES encryption & decryption
 - Field-level encryption & decryption for JSON objects
+- Batch encryption & decryption for multiple records
 - FFI (Foreign Function Interface) bindings for Go and Python
 - Logging functionality
 
