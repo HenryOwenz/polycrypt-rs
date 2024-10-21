@@ -136,3 +136,75 @@ pub fn encrypt_fields(record: &Value, fields_to_encrypt: &[String], key: &[u8; 3
     logger.info("Field encryption completed", None);
     Ok(encrypted_record)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn test_encrypt_decrypt() {
+        let plaintext = b"Hello, world!";
+        let key = [0u8; 32]; // Use a fixed key for testing
+
+        let encrypted = encrypt(plaintext, &key).unwrap();
+        assert_ne!(encrypted, plaintext);
+        
+        let decrypted = decrypt(&encrypted, &key).unwrap();
+        assert_eq!(decrypted, plaintext);
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_fields() {
+        let key = [0u8; 32]; // Use a fixed key for testing
+        let record = json!({
+            "id": "1234",
+            "name": "John Doe",
+            "sensitive_data": "This is sensitive information",
+            "array_field": ["item1", "item2", "item3"]
+        });
+        let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
+
+        let encrypted_record = encrypt_fields(&record, &fields_to_encrypt, &key).unwrap();
+        assert_ne!(encrypted_record["sensitive_data"], record["sensitive_data"]);
+        assert_ne!(encrypted_record["array_field"], record["array_field"]);
+        assert_eq!(encrypted_record["id"], record["id"]);
+        assert_eq!(encrypted_record["name"], record["name"]);
+
+        let decrypted_record = decrypt_fields(&encrypted_record, &fields_to_encrypt, &key).unwrap();
+        assert_eq!(decrypted_record, record);
+    }
+
+    #[test]
+    fn test_encryption_error() {
+        let plaintext = b"Hello, world!";
+        let mut key = [0u8; 32];
+        key[..31].copy_from_slice(&[1u8; 31]); // Fill first 31 bytes with 1s
+        
+        // Create a wrapper function that accepts &[u8] instead of &[u8; 32]
+        fn encrypt_wrapper(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, PolyCryptError> {
+            if key.len() != 32 {
+                return Err(PolyCryptError::InvalidKeyError("Key must be 32 bytes long".to_string()));
+            }
+            let key_array: [u8; 32] = key.try_into().unwrap();
+            encrypt(plaintext, &key_array)
+        }
+
+        // Test with invalid key length
+        let result = encrypt_wrapper(plaintext, &key[..31]);
+        assert!(result.is_err());
+        
+        // Test with valid key length (should succeed)
+        let result = encrypt_wrapper(plaintext, &key);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_decryption_error() {
+        let invalid_ciphertext = vec![0u8; 15]; // Too short for valid ciphertext
+        let key = [0u8; 32];
+
+        let result = decrypt(&invalid_ciphertext, &key);
+        assert!(result.is_err());
+    }
+}

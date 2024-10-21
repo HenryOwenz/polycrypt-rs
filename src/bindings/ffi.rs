@@ -5,7 +5,6 @@ use crate::crypto::encryption;
 use env_logger::{Builder, Env};
 use serde_json::Value;
 use std::ffi::c_void;
-use log::{debug, error};
 
 #[repr(C)]
 pub struct ByteArray {
