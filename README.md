@@ -12,9 +12,9 @@ In response to the challenges faced by a healthcare company client with a 100% P
 
 ## Features
 
-- AES encryption and decryption
-- Field-level encryption for JSON objects
-- FFI bindings for Go and Python
+- AES encryption & decryption
+- Field-level encryption & decryption for JSON objects
+- FFI (Foreign Function Interface) bindings for Go and Python
 - Logging functionality
 
 ## Requirements
