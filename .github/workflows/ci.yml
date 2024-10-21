@@ -34,13 +34,10 @@ jobs:
         sudo apt-get install -y make
 
     - name: Build Rust library
-      run: cargo build --release
+      run: make build
 
     - name: Debug - List target directory
       run: ls -R target/release
-
-    - name: Build
-      run: make
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4

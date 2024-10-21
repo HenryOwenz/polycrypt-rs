@@ -22,7 +22,7 @@ RESET := \033[0m
 DASH_LINE := \033[90m---------------------------------------------------------------\033[0m
 
 # Default target
-all: build
+# all: build
 
 # Build for release
 build: 
