@@ -26,6 +26,106 @@ import (
 	"unsafe"
 )
 
+func encrypt(plaintext []byte, key []byte) ([]byte, error) {
+	cPlaintext := (*C.uint8_t)(unsafe.Pointer(&plaintext[0]))
+	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
+
+	result := C.encrypt(cPlaintext, C.uintptr_t(len(plaintext)), cKey)
+	defer C.free_byte_array(result)
+
+	if result.data == nil {
+		return nil, fmt.Errorf("encryption failed")
+	}
+
+	return C.GoBytes(unsafe.Pointer(result.data), C.int(result.len)), nil
+}
+
+func decrypt(ciphertext []byte, key []byte) ([]byte, error) {
+	cCiphertext := (*C.uint8_t)(unsafe.Pointer(&ciphertext[0]))
+	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
+
+	result := C.decrypt(cCiphertext, C.uintptr_t(len(ciphertext)), cKey)
+	defer C.free_byte_array(result)
+
+	if result.data == nil {
+		return nil, fmt.Errorf("decryption failed")
+	}
+
+	return C.GoBytes(unsafe.Pointer(result.data), C.int(result.len)), nil
+}
+
+func encryptFields(record map[string]interface{}, fieldsToEncrypt []string, key []byte) (map[string]interface{}, error) {
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal record: %v", err)
+	}
+	fieldsJSON, err := json.Marshal(fieldsToEncrypt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal fields: %v", err)
+	}
+	cRecord := C.CString(string(recordJSON))
+	cFields := C.CString(string(fieldsJSON))
+	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
+	defer C.free(unsafe.Pointer(cRecord))
+	defer C.free(unsafe.Pointer(cFields))
+
+	cResult := C.encrypt_fields(cRecord, cFields, cKey)
+	defer C.free_c_char(cResult)
+
+	if cResult == nil {
+		return nil, fmt.Errorf("field encryption failed")
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(C.GoString(cResult)), &result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal encrypted result: %v", err)
+	}
+	return result, nil
+}
+
+func decryptFields(record map[string]interface{}, fieldsToDecrypt []string, key []byte) (map[string]interface{}, error) {
+	recordJSON, err := json.Marshal(record)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal record: %v", err)
+	}
+	fieldsJSON, err := json.Marshal(fieldsToDecrypt)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal fields: %v", err)
+	}
+	cRecord := C.CString(string(recordJSON))
+	cFields := C.CString(string(fieldsJSON))
+	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
+	defer C.free(unsafe.Pointer(cRecord))
+	defer C.free(unsafe.Pointer(cFields))
+
+	cResult := C.decrypt_fields(cRecord, cFields, cKey)
+	defer C.free_c_char(cResult)
+
+	if cResult == nil {
+		return nil, fmt.Errorf("field decryption failed")
+	}
+
+	var result map[string]interface{}
+	err = json.Unmarshal([]byte(C.GoString(cResult)), &result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to unmarshal decrypted result: %v", err)
+	}
+
+	// Convert []interface{} back to []string for array fields
+	for key, value := range result {
+		if slice, ok := value.([]interface{}); ok {
+			stringSlice := make([]string, len(slice))
+			for i, v := range slice {
+				stringSlice[i] = fmt.Sprint(v)
+			}
+			result[key] = stringSlice
+		}
+	}
+
+	return result, nil
+}
+
 func main() {
 	// Set the RUST_LOG environment variable
 	os.Setenv("RUST_LOG", "info")
@@ -37,23 +137,21 @@ func main() {
 	key := make([]byte, 32)
 	// In a real scenario, use a proper key generation method
 
-	cPlaintext := (*C.uint8_t)(unsafe.Pointer(&plaintext[0]))
-	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
-
-	encryptedResult := C.encrypt(cPlaintext, C.uintptr_t(len(plaintext)), cKey)
-	defer C.free_byte_array(encryptedResult)
-
-	encrypted := C.GoBytes(unsafe.Pointer(encryptedResult.data), C.int(encryptedResult.len))
+	encrypted, err := encrypt(plaintext, key)
+	if err != nil {
+		fmt.Printf("Encryption error: %v\n", err)
+		return
+	}
 
 	fmt.Printf("Plaintext: %s\n", plaintext)
 	fmt.Printf("Encrypted: %v\n", encrypted)
 	fmt.Printf("Encrypted length: %d\n", len(encrypted))
 
-	cEncrypted := (*C.uint8_t)(unsafe.Pointer(&encrypted[0]))
-	decryptedResult := C.decrypt(cEncrypted, C.uintptr_t(len(encrypted)), cKey)
-	defer C.free_byte_array(decryptedResult)
-
-	decrypted := C.GoBytes(unsafe.Pointer(decryptedResult.data), C.int(decryptedResult.len))
+	decrypted, err := decrypt(encrypted, key)
+	if err != nil {
+		fmt.Printf("Decryption error: %v\n", err)
+		return
+	}
 
 	fmt.Printf("Decrypted: %s\n", decrypted)
 	fmt.Printf("Decrypted length: %d\n", len(decrypted))
@@ -69,43 +167,17 @@ func main() {
 
 	fmt.Printf("Original record: %v\n", record)
 
-	encryptedRecord := encryptFields(record, fieldsToEncrypt, key)
+	encryptedRecord, err := encryptFields(record, fieldsToEncrypt, key)
+	if err != nil {
+		fmt.Printf("Field encryption error: %v\n", err)
+		return
+	}
 	fmt.Printf("Encrypted record: %v\n", encryptedRecord)
 
-	decryptedRecord := decryptFields(encryptedRecord, fieldsToEncrypt, key)
+	decryptedRecord, err := decryptFields(encryptedRecord, fieldsToEncrypt, key)
+	if err != nil {
+		fmt.Printf("Field decryption error: %v\n", err)
+		return
+	}
 	fmt.Printf("Decrypted record: %v\n", decryptedRecord)
-}
-
-func decryptFields(record map[string]interface{}, fieldsToDecrypt []string, key []byte) map[string]interface{} {
-	recordJSON, _ := json.Marshal(record)
-	fieldsJSON, _ := json.Marshal(fieldsToDecrypt)
-	cRecord := C.CString(string(recordJSON))
-	cFields := C.CString(string(fieldsJSON))
-	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
-	defer C.free(unsafe.Pointer(cRecord))
-	defer C.free(unsafe.Pointer(cFields))
-
-	cResult := C.decrypt_fields(cRecord, cFields, cKey)
-	defer C.free_c_char(cResult)
-
-	var result map[string]interface{}
-	json.Unmarshal([]byte(C.GoString(cResult)), &result)
-	return result
-}
-
-func encryptFields(record map[string]interface{}, fieldsToEncrypt []string, key []byte) map[string]interface{} {
-	recordJSON, _ := json.Marshal(record)
-	fieldsJSON, _ := json.Marshal(fieldsToEncrypt)
-	cRecord := C.CString(string(recordJSON))
-	cFields := C.CString(string(fieldsJSON))
-	cKey := (*C.uint8_t)(unsafe.Pointer(&key[0]))
-	defer C.free(unsafe.Pointer(cRecord))
-	defer C.free(unsafe.Pointer(cFields))
-
-	cResult := C.encrypt_fields(cRecord, cFields, cKey)
-	defer C.free_c_char(cResult)
-
-	var result map[string]interface{}
-	json.Unmarshal([]byte(C.GoString(cResult)), &result)
-	return result
 }
