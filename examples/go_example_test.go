@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"reflect"
 	"testing"
@@ -55,34 +54,84 @@ func TestFieldEncryptionDecryption(t *testing.T) {
 		t.Fatalf("Field decryption failed: %v", err)
 	}
 
-	// Detailed comparison
-	for k, v := range record {
-		if !reflect.DeepEqual(v, decryptedRecord[k]) {
-			t.Errorf("Mismatch in field %s:\nOriginal: %#v\nDecrypted: %#v", k, v, decryptedRecord[k])
-		}
-	}
-
-	// Check for extra fields in decrypted record
-	for k := range decryptedRecord {
-		if _, exists := record[k]; !exists {
-			t.Errorf("Extra field in decrypted record: %s", k)
-		}
-	}
-
-	// If the above checks pass but DeepEqual still fails, print both records
 	if !reflect.DeepEqual(record, decryptedRecord) {
-		originalJSON, _ := json.MarshalIndent(record, "", "  ")
-		decryptedJSON, _ := json.MarshalIndent(decryptedRecord, "", "  ")
-		t.Errorf("Records do not match.\nOriginal:\n%s\nDecrypted:\n%s", originalJSON, decryptedJSON)
+		t.Errorf("Decrypted record does not match original record")
 	}
 }
 
-// Add this helper function to print maps for debugging
+func TestBatchFieldEncryptionDecryption(t *testing.T) {
+	records := []map[string]interface{}{
+		{
+			"id":             "1234",
+			"name":           "John Doe",
+			"sensitive_data": "This is sensitive information",
+			"array_field":    []string{"item1", "item2", "item3"},
+		},
+		{
+			"id":             "5678",
+			"name":           "Jane Smith",
+			"sensitive_data": "Another sensitive information",
+			"array_field":    []string{"item4", "item5", "item6"},
+		},
+	}
+	fieldsToEncrypt := []string{"sensitive_data", "array_field"}
+	key := make([]byte, 32)
+
+	encryptedRecords, err := encryptFieldsInBatch(records, fieldsToEncrypt, key)
+	if err != nil {
+		t.Fatalf("Batch field encryption failed: %v", err)
+	}
+
+	for i, encryptedRecord := range encryptedRecords {
+		if reflect.DeepEqual(encryptedRecord["sensitive_data"], records[i]["sensitive_data"]) {
+			t.Errorf("Sensitive data was not encrypted in record %d", i)
+		}
+	}
+
+	decryptedRecords, err := decryptFieldsInBatch(encryptedRecords, fieldsToEncrypt, key)
+	if err != nil {
+		t.Fatalf("Batch field decryption failed: %v", err)
+	}
+
+	if !reflect.DeepEqual(records, decryptedRecords) {
+		t.Errorf("Decrypted records do not match original records")
+		t.Logf("Original records: %s", printRecords(records))
+		t.Logf("Decrypted records: %s", printRecords(decryptedRecords))
+		
+		for i := range records {
+			if !reflect.DeepEqual(records[i], decryptedRecords[i]) {
+				t.Errorf("Mismatch in record %d", i)
+				t.Logf("Original: %s", printMap(records[i]))
+				t.Logf("Decrypted: %s", printMap(decryptedRecords[i]))
+				
+				for key := range records[i] {
+					if !reflect.DeepEqual(records[i][key], decryptedRecords[i][key]) {
+						t.Errorf("Mismatch in field %q of record %d", key, i)
+						t.Logf("Original: %#v", records[i][key])
+						t.Logf("Decrypted: %#v", decryptedRecords[i][key])
+					}
+				}
+			}
+		}
+	}
+}
+
+// Helper function to print a map
 func printMap(m map[string]interface{}) string {
 	result := "{\n"
 	for k, v := range m {
 		result += fmt.Sprintf("  %s: %#v\n", k, v)
 	}
 	result += "}"
+	return result
+}
+
+// Helper function to print a slice of records
+func printRecords(records []map[string]interface{}) string {
+	result := "[\n"
+	for i, record := range records {
+		result += fmt.Sprintf("  Record %d: %s\n", i, printMap(record))
+	}
+	result += "]"
 	return result
 }

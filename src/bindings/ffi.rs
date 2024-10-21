@@ -129,3 +129,47 @@ pub extern "C" fn free_buffer(ptr: *mut c_void) {
         }
     }
 }
+
+#[no_mangle]
+pub extern "C" fn decrypt_fields_in_batch(records: *const c_char, fields_to_decrypt: *const c_char, key: *const c_uchar) -> *mut c_char {
+    let records_str = unsafe { CStr::from_ptr(records).to_str().unwrap() };
+    let fields_str = unsafe { CStr::from_ptr(fields_to_decrypt).to_str().unwrap() };
+    let key_slice = unsafe { slice::from_raw_parts(key, 32) };
+    let key_array: [u8; 32] = key_slice.try_into().unwrap();
+
+    let records: Vec<Value> = serde_json::from_str(records_str).unwrap();
+    let fields: Vec<String> = serde_json::from_str(fields_str).unwrap();
+
+    match encryption::decrypt_fields_in_batch(&records, &fields, &key_array) {
+        Ok(decrypted_records) => {
+            let result_json = serde_json::to_string(&decrypted_records).unwrap();
+            CString::new(result_json).unwrap().into_raw()
+        }
+        Err(e) => {
+            eprintln!("Error in decrypt_fields_in_batch: {:?}", e);
+            std::ptr::null_mut()
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn encrypt_fields_in_batch(records: *const c_char, fields_to_encrypt: *const c_char, key: *const c_uchar) -> *mut c_char {
+    let records_str = unsafe { CStr::from_ptr(records).to_str().unwrap() };
+    let fields_str = unsafe { CStr::from_ptr(fields_to_encrypt).to_str().unwrap() };
+    let key_slice = unsafe { slice::from_raw_parts(key, 32) };
+    let key_array: [u8; 32] = key_slice.try_into().unwrap();
+
+    let records: Vec<Value> = serde_json::from_str(records_str).unwrap();
+    let fields: Vec<String> = serde_json::from_str(fields_str).unwrap();
+
+    match encryption::encrypt_fields_in_batch(&records, &fields, &key_array) {
+        Ok(encrypted_records) => {
+            let result_json = serde_json::to_string(&encrypted_records).unwrap();
+            CString::new(result_json).unwrap().into_raw()
+        }
+        Err(e) => {
+            eprintln!("Error in encrypt_fields_in_batch: {:?}", e);
+            std::ptr::null_mut()
+        }
+    }
+}

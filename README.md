@@ -2,6 +2,8 @@
 
 polycrypt-rs is a multi-language cryptographic library wrapper designed to provide a standardized encryption and decryption solution for organizations dealing with sensitive data, such as Protected Health Information (PHI) in healthcare settings.
 
+*A systems-level cryptographic library with cross-language FFI capabilities, designed for backend infrastructure and security-critical applications.*
+
 ## Motivation
 
 In response to the challenges faced by a healthcare company client with a 100% PHI data layer field encryption requirement, polycrypt-rs was developed to:
@@ -33,7 +35,7 @@ In response to the challenges faced by a healthcare company client with a 100% P
 
 2. Build the Rust library:
    ```
-   cargo build --release
+   make
    ```
 
 ## Usage

@@ -137,6 +137,14 @@ pub fn encrypt_fields(record: &Value, fields_to_encrypt: &[String], key: &[u8; 3
     Ok(encrypted_record)
 }
 
+pub fn decrypt_fields_in_batch(records: &[Value], fields_to_decrypt: &[String], key: &[u8; 32]) -> Result<Vec<Value>, PolyCryptError> {
+    records.iter().map(|record| decrypt_fields(record, fields_to_decrypt, key)).collect()
+}
+
+pub fn encrypt_fields_in_batch(records: &[Value], fields_to_encrypt: &[String], key: &[u8; 32]) -> Result<Vec<Value>, PolyCryptError> {
+    records.iter().map(|record| encrypt_fields(record, fields_to_encrypt, key)).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -206,5 +214,76 @@ mod tests {
 
         let result = decrypt(&invalid_ciphertext, &key);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_fields_in_batch() {
+        let key = [0u8; 32]; // Use a fixed key for testing
+        let records = vec![
+            json!({
+                "id": "1234",
+                "name": "John Doe",
+                "sensitive_data": "This is sensitive information",
+                "array_field": ["item1", "item2", "item3"]
+            }),
+            json!({
+                "id": "5678",
+                "name": "Jane Smith",
+                "sensitive_data": "Another piece of sensitive information",
+                "array_field": ["item4", "item5", "item6"]
+            })
+        ];
+        let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
+
+        // Test encryption
+        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
+        
+        assert_eq!(encrypted_records.len(), records.len());
+        for (encrypted_record, original_record) in encrypted_records.iter().zip(records.iter()) {
+            assert_ne!(encrypted_record["sensitive_data"], original_record["sensitive_data"]);
+            assert_ne!(encrypted_record["array_field"], original_record["array_field"]);
+            assert_eq!(encrypted_record["id"], original_record["id"]);
+            assert_eq!(encrypted_record["name"], original_record["name"]);
+        }
+
+        // Test decryption
+        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
+        
+        assert_eq!(decrypted_records.len(), records.len());
+        for (decrypted_record, original_record) in decrypted_records.iter().zip(records.iter()) {
+            assert_eq!(decrypted_record, original_record);
+        }
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_fields_in_batch_empty_input() {
+        let key = [0u8; 32];
+        let records: Vec<Value> = vec![];
+        let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
+
+        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
+        assert!(encrypted_records.is_empty());
+
+        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
+        assert!(decrypted_records.is_empty());
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_fields_in_batch_no_fields() {
+        let key = [0u8; 32];
+        let records = vec![
+            json!({
+                "id": "1234",
+                "name": "John Doe",
+                "sensitive_data": "This is sensitive information",
+            })
+        ];
+        let fields_to_encrypt: Vec<String> = vec![];
+
+        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
+        assert_eq!(encrypted_records, records);
+
+        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
+        assert_eq!(decrypted_records, records);
     }
 }

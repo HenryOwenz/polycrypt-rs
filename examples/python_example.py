@@ -30,21 +30,20 @@ lib.free_byte_array.restype = None
 lib.init_logger.argtypes = []
 lib.init_logger.restype = None
 
-# Add new function signatures
 lib.decrypt_fields.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
 lib.decrypt_fields.restype = ctypes.c_void_p
 
 lib.encrypt_fields.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
 lib.encrypt_fields.restype = ctypes.c_void_p
 
+lib.decrypt_fields_in_batch.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
+lib.decrypt_fields_in_batch.restype = ctypes.c_void_p
+
+lib.encrypt_fields_in_batch.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
+lib.encrypt_fields_in_batch.restype = ctypes.c_void_p
+
 lib.free_c_char.argtypes = [ctypes.c_void_p]
 lib.free_c_char.restype = None
-
-lib.allocate_buffer.argtypes = [ctypes.c_size_t]
-lib.allocate_buffer.restype = ctypes.c_void_p
-
-lib.free_buffer.argtypes = [ctypes.c_void_p]
-lib.free_buffer.restype = None
 
 def encrypt(plaintext: bytes, key: bytes) -> bytes:
     plaintext_ptr = (ctypes.c_uint8 * len(plaintext)).from_buffer_copy(plaintext)
@@ -100,6 +99,38 @@ def encrypt_fields(record: dict, fields_to_encrypt: list, key: bytes) -> dict:
         if result:
             lib.free_c_char(result)
 
+def decrypt_fields_in_batch(records: list, fields_to_decrypt: list, key: bytes) -> list:
+    records_json = json.dumps(records).encode('utf-8')
+    fields_json = json.dumps(fields_to_decrypt).encode('utf-8')
+    key_ptr = (ctypes.c_uint8 * len(key)).from_buffer_copy(key)
+    
+    result = lib.decrypt_fields_in_batch(records_json, fields_json, key_ptr)
+    if result is None:
+        raise ValueError("Batch field decryption failed")
+    try:
+        decrypted_str = ctypes.cast(result, ctypes.c_char_p).value.decode('utf-8')
+        decrypted = json.loads(decrypted_str)
+        return decrypted
+    finally:
+        if result:
+            lib.free_c_char(result)
+
+def encrypt_fields_in_batch(records: list, fields_to_encrypt: list, key: bytes) -> list:
+    records_json = json.dumps(records).encode('utf-8')
+    fields_json = json.dumps(fields_to_encrypt).encode('utf-8')
+    key_ptr = (ctypes.c_uint8 * len(key)).from_buffer_copy(key)
+    
+    result = lib.encrypt_fields_in_batch(records_json, fields_json, key_ptr)
+    if result is None:
+        raise ValueError("Batch field encryption failed")
+    try:
+        encrypted_str = ctypes.cast(result, ctypes.c_char_p).value.decode('utf-8')
+        encrypted = json.loads(encrypted_str)
+        return encrypted
+    finally:
+        if result:
+            lib.free_c_char(result)
+
 def main():
     os.environ["RUST_LOG"] = "debug"
     lib.init_logger()
@@ -127,16 +158,25 @@ def main():
 
         print(f"Original record: {record}")
 
-        try:
-            encrypted_record = encrypt_fields(record, fields_to_encrypt, key)
-            print(f"Encrypted record: {encrypted_record}")
+        encrypted_record = encrypt_fields(record, fields_to_encrypt, key)
+        print(f"Encrypted record: {encrypted_record}")
 
-            print("About to call decrypt_fields")
-            decrypted_record = decrypt_fields(encrypted_record, fields_to_encrypt, key)
-            print(f"Decrypted record: {decrypted_record}")
-        except Exception as e:
-            print(f"An error occurred during field encryption/decryption: {e}")
-            traceback.print_exc()
+        decrypted_record = decrypt_fields(encrypted_record, fields_to_encrypt, key)
+        print(f"Decrypted record: {decrypted_record}")
+
+        # Test batch encryption and decryption
+        records = [record, {
+            "id": "5678",
+            "name": "Jane Smith",
+            "sensitive_data": "Another piece of sensitive information",
+            "array_field": ["item4", "item5", "item6"]
+        }]
+
+        encrypted_records = encrypt_fields_in_batch(records, fields_to_encrypt, key)
+        print(f"Encrypted records: {encrypted_records}")
+
+        decrypted_records = decrypt_fields_in_batch(encrypted_records, fields_to_encrypt, key)
+        print(f"Decrypted records: {decrypted_records}")
 
     except Exception as e:
         print(f"An error occurred: {e}")
