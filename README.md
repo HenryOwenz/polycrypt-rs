@@ -36,6 +36,52 @@ In response to the challenges faced by a healthcare company client with a 100% P
    cargo build --release
    ```
 
+## Usage
+
+### Using the Makefile
+
+The project includes a Makefile that simplifies common tasks. Here are some useful commands:
+
+- `make build`: Build the project in release mode
+- `make debug`: Build the project in debug mode
+- `make test`: Run Rust tests
+- `make go-test`: Run Go tests
+- `make py-test`: Run Python tests
+- `make test-all`: Run all tests (Rust, Go, and Python)
+- `make go-run`: Run the Go example
+- `make py-run`: Run the Python example
+- `make clean`: Clean the project
+- `make doc`: Generate documentation
+
+To use these commands, simply run `make <command>` in the project root directory.
+
+### Examples
+
+The `examples` directory contains sample code for using polycrypt-rs with Go and Python:
+
+- `examples/go_example.go`: Demonstrates usage of the library in Go
+- `examples/python_example.py`: Demonstrates usage of the library in Python
+
+To run the examples:
+
+1. For Go: `make go-run`
+2. For Python: `make py-run`
+
+### Tests
+
+The project includes tests for Rust, Go, and Python implementations:
+
+- Rust tests: Located in `src` and `tests` directories
+- Go tests: Located in `examples/go_example_test.go`
+- Python tests: Located in `examples/python_example_test.py`
+
+To run the tests:
+
+1. For Rust: `make test`
+2. For Go: `make go-test`
+3. For Python: `make py-test`
+4. For all tests: `make test-all`
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
