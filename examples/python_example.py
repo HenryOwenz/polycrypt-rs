@@ -32,13 +32,19 @@ lib.init_logger.restype = None
 
 # Add new function signatures
 lib.decrypt_fields.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
-lib.decrypt_fields.restype = ctypes.c_char_p
+lib.decrypt_fields.restype = ctypes.c_void_p
 
 lib.encrypt_fields.argtypes = [ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(ctypes.c_uint8)]
-lib.encrypt_fields.restype = ctypes.c_char_p
+lib.encrypt_fields.restype = ctypes.c_void_p
 
-lib.free_c_char.argtypes = [ctypes.c_char_p]
+lib.free_c_char.argtypes = [ctypes.c_void_p]
 lib.free_c_char.restype = None
+
+lib.allocate_buffer.argtypes = [ctypes.c_size_t]
+lib.allocate_buffer.restype = ctypes.c_void_p
+
+lib.free_buffer.argtypes = [ctypes.c_void_p]
+lib.free_buffer.restype = None
 
 def encrypt(plaintext: bytes, key: bytes) -> bytes:
     plaintext_ptr = (ctypes.c_uint8 * len(plaintext)).from_buffer_copy(plaintext)
@@ -63,47 +69,39 @@ def decrypt(ciphertext: bytes, key: bytes) -> bytes:
     return decrypted
 
 def decrypt_fields(record: dict, fields_to_decrypt: list, key: bytes) -> dict:
-    print("Starting decrypt_fields")
     record_json = json.dumps(record).encode('utf-8')
     fields_json = json.dumps(fields_to_decrypt).encode('utf-8')
     key_ptr = (ctypes.c_uint8 * len(key)).from_buffer_copy(key)
     
     result = lib.decrypt_fields(record_json, fields_json, key_ptr)
-    print(f"decrypt_fields result pointer: {result}")
     if result is None:
         raise ValueError("Field decryption failed")
     try:
-        decrypted_str = ctypes.string_at(result).decode('utf-8')
-        print(f"Decrypted string: {decrypted_str}")
+        decrypted_str = ctypes.cast(result, ctypes.c_char_p).value.decode('utf-8')
         decrypted = json.loads(decrypted_str)
         return decrypted
     finally:
         if result:
-            print("Freeing decrypt_fields result")
             lib.free_c_char(result)
 
 def encrypt_fields(record: dict, fields_to_encrypt: list, key: bytes) -> dict:
-    print("Starting encrypt_fields")
     record_json = json.dumps(record).encode('utf-8')
     fields_json = json.dumps(fields_to_encrypt).encode('utf-8')
     key_ptr = (ctypes.c_uint8 * len(key)).from_buffer_copy(key)
     
     result = lib.encrypt_fields(record_json, fields_json, key_ptr)
-    print(f"encrypt_fields result pointer: {result}")
     if result is None:
         raise ValueError("Field encryption failed")
     try:
-        encrypted_str = ctypes.string_at(result).decode('utf-8')
-        print(f"Encrypted string: {encrypted_str}")
+        encrypted_str = ctypes.cast(result, ctypes.c_char_p).value.decode('utf-8')
         encrypted = json.loads(encrypted_str)
         return encrypted
     finally:
         if result:
-            print("Freeing encrypt_fields result")
             lib.free_c_char(result)
 
 def main():
-    os.environ["RUST_LOG"] = "info"
+    os.environ["RUST_LOG"] = "debug"
     lib.init_logger()
 
     plaintext = b"Hello, world!"
@@ -129,12 +127,16 @@ def main():
 
         print(f"Original record: {record}")
 
-        encrypted_record = encrypt_fields(record, fields_to_encrypt, key)
-        print(f"Encrypted record: {encrypted_record}")
+        try:
+            encrypted_record = encrypt_fields(record, fields_to_encrypt, key)
+            print(f"Encrypted record: {encrypted_record}")
 
-        print("About to call decrypt_fields")
-        decrypted_record = decrypt_fields(encrypted_record, fields_to_encrypt, key)
-        print(f"Decrypted record: {decrypted_record}")
+            print("About to call decrypt_fields")
+            decrypted_record = decrypt_fields(encrypted_record, fields_to_encrypt, key)
+            print(f"Decrypted record: {decrypted_record}")
+        except Exception as e:
+            print(f"An error occurred during field encryption/decryption: {e}")
+            traceback.print_exc()
 
     except Exception as e:
         print(f"An error occurred: {e}")

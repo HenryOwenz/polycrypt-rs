@@ -6,6 +6,7 @@ use crate::error::PolyCryptError;
 use crate::Logger;
 use serde_json::{json, Value};
 use base64;
+use log::debug;
 
 const AES_BLOCK_SIZE: usize = 16;
 
@@ -79,6 +80,7 @@ pub fn decrypt_fields(record: &Value, fields_to_decrypt: &[String], key: &[u8; 3
 
     for field in fields_to_decrypt {
         if let Some(encrypted_value) = record.get(field) {
+            debug!("Decrypting field: {}", field);
             let decrypted_value = if encrypted_value.is_array() {
                 let array = encrypted_value.as_array().unwrap();
                 let decrypted_array: Result<Vec<String>, PolyCryptError> = array

@@ -60,4 +60,8 @@ install: build
 uninstall:
 	$(CARGO) uninstall $(BINARY_NAME)
 
+# FFI bindings tests
+py-run:
+	RUST_LOG=debug python3 examples/python_example.py
+
 .PHONY: all build debug run run-debug test bench check fmt lint clean doc install uninstall

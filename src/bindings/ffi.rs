@@ -4,6 +4,8 @@ use std::ffi::{CStr, CString};
 use crate::crypto::encryption;
 use env_logger::{Builder, Env};
 use serde_json::Value;
+use std::ffi::c_void;
+use log::{debug, error};
 
 #[repr(C)]
 pub struct ByteArray {
@@ -79,8 +81,7 @@ pub extern "C" fn decrypt_fields(record: *const c_char, fields_to_decrypt: *cons
     match encryption::decrypt_fields(&record_value, &fields, &key_array) {
         Ok(decrypted) => {
             let json_string = serde_json::to_string(&decrypted).unwrap();
-            let c_str = std::ffi::CString::new(json_string).unwrap();
-            c_str.into_raw()
+            CString::new(json_string).unwrap().into_raw()
         }
         Err(_) => std::ptr::null_mut(),
     }
@@ -99,8 +100,7 @@ pub extern "C" fn encrypt_fields(record: *const c_char, fields_to_encrypt: *cons
     match encryption::encrypt_fields(&record_value, &fields, &key_array) {
         Ok(encrypted) => {
             let json_string = serde_json::to_string(&encrypted).unwrap();
-            let c_str = std::ffi::CString::new(json_string).unwrap();
-            c_str.into_raw()
+            CString::new(json_string).unwrap().into_raw()
         }
         Err(_) => std::ptr::null_mut(),
     }
@@ -109,7 +109,24 @@ pub extern "C" fn encrypt_fields(record: *const c_char, fields_to_encrypt: *cons
 #[no_mangle]
 pub extern "C" fn free_c_char(s: *mut c_char) {
     unsafe {
-        if s.is_null() { return }
-        drop(CString::from_raw(s));
-    };
+        if !s.is_null() {
+            let _ = CString::from_raw(s);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn allocate_buffer(size: usize) -> *mut c_void {
+    let buffer = vec![0u8; size].into_boxed_slice();
+    let ptr = Box::into_raw(buffer) as *mut c_void;
+    ptr
+}
+
+#[no_mangle]
+pub extern "C" fn free_buffer(ptr: *mut c_void) {
+    unsafe {
+        if !ptr.is_null() {
+            let _ = Box::from_raw(ptr as *mut u8);
+        }
+    }
 }
