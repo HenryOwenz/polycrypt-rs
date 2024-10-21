@@ -6,17 +6,18 @@
 ├── docs
 │   └── Overview.md
 ├── examples
-│   ├── go.mod
-│   ├── go.sum
-│   ├── go_example.go
-│   ├── go_example_test.go
-│   ├── polycrypt_ffi_go
-│   ├── python_example.py
-│   └── python_example_test.py
+│   ├── go
+│   │   ├── go.mod
+│   │   ├── go.sum
+│   │   ├── go_example.go
+│   │   └── go_example_test.go
+│   └── python
+│       ├── python_example.py
+│       └── python_example_test.py
 ├── src
 │   ├── bindings
 │   │   ├── ffi.rs
-│   │   ├── mod.rs
+│   │   └── mod.rs
 │   ├── crypto
 │   │   ├── encryption.rs
 │   │   └── mod.rs
@@ -25,3 +26,6 @@
 │   └── logger.rs
 ├── tests
 │   └── integration_tests.rs
+└── tree.txt
+
+8 directories, 20 files

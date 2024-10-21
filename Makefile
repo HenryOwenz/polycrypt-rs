@@ -8,6 +8,8 @@ RUST_LIB_PATH := $(shell pwd)/$(RELEASE_DIR)
 GO_BUILD_FLAGS := -ldflags "-r $(RUST_LIB_PATH)"
 GO_OUTPUT_BINARY := polycrypt_ffi_go
 EXAMPLES_DIR := examples
+GO_EXAMPLES_DIR := $(EXAMPLES_DIR)/go
+PYTHON_EXAMPLES_DIR := $(EXAMPLES_DIR)/python
 
 # Colors
 CYAN := \033[36m
@@ -154,7 +156,7 @@ py-run: build
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Python example...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@RUST_LOG=debug python3 $(EXAMPLES_DIR)/python_example.py
+	@RUST_LOG=debug python3 $(PYTHON_EXAMPLES_DIR)/python_example.py
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Python example completed.$(RESET)"
 	@echo "$(DASH_LINE)"
@@ -164,7 +166,7 @@ go-build: build
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Building Go example...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && go build $(GO_BUILD_FLAGS) -o $(GO_OUTPUT_BINARY) go_example.go
+	@cd $(GO_EXAMPLES_DIR) && go build $(GO_BUILD_FLAGS) -o $(GO_OUTPUT_BINARY) go_example.go
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Go example built successfully.$(RESET)"
 	@echo "$(DASH_LINE)"
@@ -174,7 +176,7 @@ go-run: go-build
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Go example...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && ./$(GO_OUTPUT_BINARY)
+	@cd $(GO_EXAMPLES_DIR) && ./$(GO_OUTPUT_BINARY)
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Go example completed.$(RESET)"
 	@echo "$(DASH_LINE)"
@@ -184,7 +186,7 @@ go-test: build
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Go tests for polycrypt-rs...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && LD_LIBRARY_PATH=$(RUST_LIB_PATH) go test -v $(GO_BUILD_FLAGS)
+	@cd $(GO_EXAMPLES_DIR) && LD_LIBRARY_PATH=$(RUST_LIB_PATH) go test -v $(GO_BUILD_FLAGS)
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Go tests completed.$(RESET)"
 	@echo "$(DASH_LINE)"
@@ -194,7 +196,7 @@ py-test: build
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Python tests for polycrypt-rs...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && python3 -m unittest python_example_test.py
+	@cd $(PYTHON_EXAMPLES_DIR) && python3 -m unittest python_example_test.py
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Python tests completed.$(RESET)"
 	@echo "$(DASH_LINE)"
@@ -212,13 +214,13 @@ test-all:
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Go tests...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && LD_LIBRARY_PATH=$(RUST_LIB_PATH) go test -v $(GO_BUILD_FLAGS)
+	@cd $(GO_EXAMPLES_DIR) && LD_LIBRARY_PATH=$(RUST_LIB_PATH) go test -v $(GO_BUILD_FLAGS)
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Go tests completed.$(RESET)"
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running Python tests...$(RESET)"
 	@echo "$(DASH_LINE)"
-	@cd $(EXAMPLES_DIR) && python3 -m unittest python_example_test.py
+	@cd $(PYTHON_EXAMPLES_DIR) && python3 -m unittest python_example_test.py
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Python tests completed.$(RESET)"
 	@echo "$(DASH_LINE)"

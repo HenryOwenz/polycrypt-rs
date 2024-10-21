@@ -1,4 +1,4 @@
 target/
 out/
-polycrypt_ffi_go
-__pycache__/
+*/**/polycrypt_ffi_go
+*/**/__pycache__/

@@ -5,7 +5,7 @@ import sys
 import traceback
 
 # Load the shared library
-lib_path = os.path.join(os.path.dirname(__file__), '..', 'target', 'release', 'libpolycrypt_rs.so')
+lib_path = os.path.join(os.path.dirname(__file__), '..', '..', 'target', 'release', 'libpolycrypt_rs.so')
 try:
     lib = ctypes.CDLL(lib_path)
 except OSError as e:
