@@ -1,0 +1,5 @@
+target/
+out/
+encryption_key_datasource_typescript_service_lib/
+polycrypt_ffi_go
+.cursorignore
