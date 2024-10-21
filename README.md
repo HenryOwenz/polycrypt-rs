@@ -1,6 +1,14 @@
 # polycrypt-rs
 
-polycrypt-rs is a multi-language cryptographic library wrapper written in Rust, with bindings for Go and Python.
+polycrypt-rs is a multi-language cryptographic library wrapper designed to provide a standardized encryption and decryption solution for organizations dealing with sensitive data, such as Protected Health Information (PHI) in healthcare settings.
+
+## Motivation
+
+In response to the challenges faced by a healthcare company client with a 100% PHI data layer field encryption requirement, polycrypt-rs was developed to:
+
+1. Eliminate the need for a distributed de/encryption service, which could introduce latency and become a single point of failure.
+2. Avoid the complexity and maintenance overhead of implementing separate encryption libraries for each programming language used within the organization.
+3. Provide a unified, efficient, and secure cryptographic solution that can be easily integrated across various programming languages and platforms.
 
 ## Features
 
