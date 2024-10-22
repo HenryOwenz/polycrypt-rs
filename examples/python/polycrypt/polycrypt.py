@@ -4,7 +4,7 @@ import json
 import sys
 
 # Load the shared library
-lib_path = os.path.join(os.path.dirname(__file__), '..', '..', '..', 'target', 'release', 'libpolycrypt_rs.so')
+lib_path = os.path.join(os.path.dirname(__file__), 'libpolycrypt_rs.so')
 try:
     lib = ctypes.CDLL(lib_path)
 except OSError as e:

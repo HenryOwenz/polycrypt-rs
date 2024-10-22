@@ -1,5 +1,6 @@
 # Variables
 CARGO := cargo
+MAKE := make
 TARGET_DIR := target
 RELEASE_DIR := $(TARGET_DIR)/release
 DEBUG_DIR := $(TARGET_DIR)/debug
@@ -13,6 +14,7 @@ PYTHON_EXAMPLES_DIR := $(EXAMPLES_DIR)/python
 GO_ENTRY_POINT := main.go
 PYTHON_ENTRY_POINT := main.py
 PYTHON_TEST_ENTRY_POINT := test.py
+LIB_NAME := libpolycrypt_rs.so
 
 # Colors
 CYAN := \033[36m
@@ -27,7 +29,7 @@ DASH_LINE := \033[90m-----------------------------------------------------------
 # Default target
 # all: build
 
-# Build for release
+# Build for release and copy the library
 build: 
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Building polycrypt-rs (release)...$(RESET_COLOR)"
@@ -35,6 +37,11 @@ build:
 	@$(CARGO) build --release
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Build completed successfully.$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+	@echo "$(CYAN)Copying $(LIB_NAME) to Go and Python packages...$(RESET_COLOR)"
+	@cp $(RELEASE_DIR)/$(LIB_NAME) $(GO_EXAMPLES_DIR)/polycrypt/
+	@cp $(RELEASE_DIR)/$(LIB_NAME) $(PYTHON_EXAMPLES_DIR)/polycrypt/
+	@echo "$(GREEN)Library copied successfully.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
 
 # Build for debug
@@ -120,6 +127,9 @@ clean:
 	@echo "$(DASH_LINE)"
 	@$(CARGO) clean
 	@rm -f $(EXAMPLES_DIR)/$(GO_OUTPUT_BINARY)
+	@rm -f $(GO_EXAMPLES_DIR)/polycrypt/$(LIB_NAME)
+	@rm -f $(GO_EXAMPLES_DIR)/polycrypt_ffi_go
+	@rm -f $(PYTHON_EXAMPLES_DIR)/polycrypt/$(LIB_NAME)
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Cleaning completed.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"

@@ -1,7 +1,7 @@
 package polycrypt
 
 /*
-#cgo LDFLAGS: -L${SRCDIR}/../../../target/release -lpolycrypt_rs
+#cgo LDFLAGS: -L${SRCDIR} -lpolycrypt_rs
 #include <stdlib.h>
 #include <stdint.h>
 

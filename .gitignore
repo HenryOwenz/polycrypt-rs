@@ -3,3 +3,6 @@ out/
 */**/polycrypt_ffi_go
 */**/__pycache__/
 .cursorignore
+*/**/libpolycrypt_rs.so
+*/**/libpolycrypt_rs.dylib
+*/**/libpolycrypt_rs.dll
