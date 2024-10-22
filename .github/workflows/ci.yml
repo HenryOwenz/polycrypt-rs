@@ -78,6 +78,11 @@ jobs:
         name: rust-lib
         path: target/release
 
+    - name: Copy artifacts to examples
+      run: |
+        cp target/release/libpolycrypt_rs.so examples/go/polycrypt/
+        cp target/release/libpolycrypt_rs.so examples/python/polycrypt/
+
     - name: Run tests
       run: make test-all
 
