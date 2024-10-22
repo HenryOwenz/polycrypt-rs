@@ -30,7 +30,17 @@ polycrypt-rs was developed in response to the complex challenges faced by a heal
 - Field-level encryption & decryption for JSON objects
 - Batch encryption & decryption for multiple records
 - FFI (Foreign Function Interface) bindings for Go and Python
+- Native language wrappers for Go and Python
 - Logging functionality
+
+## Native Language Libraries
+
+As part of our commitment to making polycrypt-rs easily accessible across different programming languages, we now maintain native language libraries for Go and Python. These libraries provide a more idiomatic interface to the underlying Rust functionality:
+
+- **Go**: Located in `examples/go/polycrypt/polycrypt.go`
+- **Python**: Located in `examples/python/polycrypt/polycrypt.py`
+
+These native libraries wrap the FFI calls and provide a more natural API for each language, making it easier for developers to integrate polycrypt-rs into their projects without dealing with the complexities of FFI directly.
 
 ## Requirements
 
@@ -48,7 +58,7 @@ polycrypt-rs was developed in response to the complex challenges faced by a heal
 
 2. Build the Rust library:
    ```
-   make
+   make build
    ```
 
 ## Usage
@@ -74,8 +84,8 @@ To use these commands, simply run `make <command>` in the project root directory
 
 The `examples` directory contains sample code for using polycrypt-rs with Go and Python:
 
-- `examples/go_example.go`: Demonstrates usage of the library in Go
-- `examples/python_example.py`: Demonstrates usage of the library in Python
+- `examples/go/main.go`: Demonstrates usage of the library in Go
+- `examples/python/main.py`: Demonstrates usage of the library in Python
 
 To run the examples:
 
@@ -87,8 +97,8 @@ To run the examples:
 The project includes tests for Rust, Go, and Python implementations:
 
 - Rust tests: Located in `src` and `tests` directories
-- Go tests: Located in `examples/go_example_test.go`
-- Python tests: Located in `examples/python_example_test.py`
+- Go tests: Located in `examples/go/main_test.go`
+- Python tests: Located in `examples/python/main_test.py`
 
 To run the tests:
 
