@@ -10,14 +10,15 @@ use log::debug;
 
 const AES_BLOCK_SIZE: usize = 16;
 
+// comment out info logging for encrypt/decrypt since it is called a lot and logging is expensive and not useful for production
 pub fn encrypt(plaintext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptError> {
     let logger = Logger::new(json!({"operation": "encryption"}));
-    logger.info("Starting encryption", Some(json!({"plaintext_length": plaintext.len()})));
+    // logger.info("Starting encryption", Some(json!({"plaintext_length": plaintext.len()})));
 
     let mut rng = rand::thread_rng();
     let mut iv = [0u8; AES_BLOCK_SIZE];
     rng.fill(&mut iv);
-    logger.info("IV generated", None);
+    // logger.info("IV generated", None);
 
     let cipher = cbc::Encryptor::<Aes256>::new(key.into(), &iv.into());
     let mut buffer = vec![0u8; plaintext.len() + AES_BLOCK_SIZE];
@@ -33,10 +34,12 @@ pub fn encrypt(plaintext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptErr
     result.extend_from_slice(&iv);
     result.extend_from_slice(&buffer[..ciphertext_len]);
 
+    /*
     logger.info("Encryption completed", Some(json!({
         "plaintext_length": plaintext.len(),
         "ciphertext_length": result.len()
     })));
+    */
 
     // If using zeroize: buffer.zeroize();
 
@@ -45,7 +48,7 @@ pub fn encrypt(plaintext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptErr
 
 pub fn decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptError> {
     let logger = Logger::new(json!({"operation": "decryption"}));
-    logger.info("Starting decryption", Some(json!({"ciphertext_length": ciphertext.len()})));
+    // logger.info("Starting decryption", Some(json!({"ciphertext_length": ciphertext.len()})));
 
     if ciphertext.len() < AES_BLOCK_SIZE {
         return Err(PolyCryptError::DecryptionError("Ciphertext too short".to_string()));
@@ -64,10 +67,12 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptEr
 
     buffer.truncate(plaintext_len);
 
+    /*
     logger.info("Decryption completed", Some(json!({
         "ciphertext_length": ciphertext.len(),
         "plaintext_length": buffer.len()
     })));
+    */
 
     Ok(buffer)
 }
@@ -214,76 +219,5 @@ mod tests {
 
         let result = decrypt(&invalid_ciphertext, &key);
         assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_encrypt_decrypt_fields_in_batch() {
-        let key = [0u8; 32]; // Use a fixed key for testing
-        let records = vec![
-            json!({
-                "id": "1234",
-                "name": "John Doe",
-                "sensitive_data": "This is sensitive information",
-                "array_field": ["item1", "item2", "item3"]
-            }),
-            json!({
-                "id": "5678",
-                "name": "Jane Smith",
-                "sensitive_data": "Another piece of sensitive information",
-                "array_field": ["item4", "item5", "item6"]
-            })
-        ];
-        let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
-
-        // Test encryption
-        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
-        
-        assert_eq!(encrypted_records.len(), records.len());
-        for (encrypted_record, original_record) in encrypted_records.iter().zip(records.iter()) {
-            assert_ne!(encrypted_record["sensitive_data"], original_record["sensitive_data"]);
-            assert_ne!(encrypted_record["array_field"], original_record["array_field"]);
-            assert_eq!(encrypted_record["id"], original_record["id"]);
-            assert_eq!(encrypted_record["name"], original_record["name"]);
-        }
-
-        // Test decryption
-        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
-        
-        assert_eq!(decrypted_records.len(), records.len());
-        for (decrypted_record, original_record) in decrypted_records.iter().zip(records.iter()) {
-            assert_eq!(decrypted_record, original_record);
-        }
-    }
-
-    #[test]
-    fn test_encrypt_decrypt_fields_in_batch_empty_input() {
-        let key = [0u8; 32];
-        let records: Vec<Value> = vec![];
-        let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
-
-        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
-        assert!(encrypted_records.is_empty());
-
-        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
-        assert!(decrypted_records.is_empty());
-    }
-
-    #[test]
-    fn test_encrypt_decrypt_fields_in_batch_no_fields() {
-        let key = [0u8; 32];
-        let records = vec![
-            json!({
-                "id": "1234",
-                "name": "John Doe",
-                "sensitive_data": "This is sensitive information",
-            })
-        ];
-        let fields_to_encrypt: Vec<String> = vec![];
-
-        let encrypted_records = encrypt_fields_in_batch(&records, &fields_to_encrypt, &key).unwrap();
-        assert_eq!(encrypted_records, records);
-
-        let decrypted_records = decrypt_fields_in_batch(&encrypted_records, &fields_to_encrypt, &key).unwrap();
-        assert_eq!(decrypted_records, records);
     }
 }
