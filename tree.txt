@@ -9,11 +9,15 @@
 │   ├── go
 │   │   ├── go.mod
 │   │   ├── go.sum
-│   │   ├── go_example.go
-│   │   └── go_example_test.go
+│   │   ├── main.go
+│   │   ├── main_test.go
+│   │   └── polycrypt
+│   │       └── polycrypt.go
 │   └── python
-│       ├── python_example.py
-│       └── python_example_test.py
+│       ├── main.py
+│       ├── polycrypt
+│       │   └── polycrypt.py
+│       └── test.py
 ├── src
 │   ├── bindings
 │   │   ├── ffi.rs
@@ -28,4 +32,4 @@
 │   └── integration_tests.rs
 └── tree.txt
 
-8 directories, 20 files
+10 directories, 22 files
