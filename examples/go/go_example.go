@@ -1,48 +1,24 @@
 package main
 
-/*
-#cgo LDFLAGS: -L${SRCDIR}/../../target/release -lpolycrypt_rs
-#include <stdlib.h>
-#include <stdint.h>
-
-typedef struct {
-    uint8_t* data;
-    uintptr_t len;
-} ByteArray;
-
-ByteArray encrypt(const uint8_t* plaintext, uintptr_t plaintext_len, const uint8_t* key);
-ByteArray decrypt(const uint8_t* ciphertext, uintptr_t ciphertext_len, const uint8_t* key);
-void free_byte_array(ByteArray arr);
-void init_logger();
-char* decrypt_fields(const char* record, const char* fields_to_decrypt, const uint8_t* key);
-char* encrypt_fields(const char* record, const char* fields_to_encrypt, const uint8_t* key);
-void free_c_char(char* s);
-
-// Add these new function declarations
-char* decrypt_fields_in_batch(const char* records, const char* fields_to_decrypt, const uint8_t* key);
-char* encrypt_fields_in_batch(const char* records, const char* fields_to_encrypt, const uint8_t* key);
-*/
-import "C"
 import (
 	"fmt"
 	"os"
-)
 
-// Add this line to import the PolyCrypt struct and NewPolyCrypt function
-var _ = NewPolyCrypt
+	"go-ffi-test/polycrypt"
+)
 
 func main() {
 	// Set the RUST_LOG environment variable
 	os.Setenv("RUST_LOG", "info")
 
 	// Initialize the logger
-	C.init_logger()
+	polycrypt.InitLogger()
 
 	plaintext := []byte("Hello, world!")
 	key := make([]byte, 32)
 	// In a real scenario, use a proper key generation method
 
-	pc := NewPolyCrypt(key)
+	pc := polycrypt.NewPolyCrypt(key)
 
 	encrypted, err := pc.Encrypt(plaintext)
 	if err != nil {

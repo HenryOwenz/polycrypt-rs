@@ -4,12 +4,15 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+
+	"go-ffi-test/polycrypt"
 )
 
 func TestEncryptDecrypt(t *testing.T) {
 	plaintext := []byte("Hello, world!")
 	key := make([]byte, 32)
-	pc := NewPolyCrypt(key)
+	// polycrypt.InitLogger()
+	pc := polycrypt.NewPolyCrypt(key)
 
 	encrypted, err := pc.Encrypt(plaintext)
 	if err != nil {
@@ -38,7 +41,7 @@ func TestFieldEncryptionDecryption(t *testing.T) {
 	}
 	fieldsToEncrypt := []string{"sensitive_data", "array_field"}
 	key := make([]byte, 32)
-	pc := NewPolyCrypt(key)
+	pc := polycrypt.NewPolyCrypt(key)
 
 	encryptedRecord, err := pc.EncryptFields(record, fieldsToEncrypt)
 	if err != nil {
@@ -86,7 +89,7 @@ func TestBatchFieldEncryptionDecryption(t *testing.T) {
 	}
 	fieldsToEncrypt := []string{"sensitive_data", "array_field"}
 	key := make([]byte, 32)
-	pc := NewPolyCrypt(key)
+	pc := polycrypt.NewPolyCrypt(key)
 
 	encryptedRecords, err := pc.EncryptFieldsInBatch(records, fieldsToEncrypt)
 	if err != nil {
