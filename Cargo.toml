@@ -1,6 +1,6 @@
 [package]
 name = "polycrypt-rs"
-version = "0.4.3-beta.1"
+version = "0.4.4-beta.1"
 edition = "2021"
 authors = ["Ugochukwu Henry Onwuzurike henryowenzdev@gmail.com"]
 description = "A multi-language cryptographic library wrapper"
@@ -23,4 +23,12 @@ env_logger = "0.10.0"
 base64 = "0.13"
 
 [dev-dependencies]
-# env_logger is now in the main dependencies, so you can remove it from here if you want
+criterion = "0.3"
+
+[[bench]]
+name = "ffi_benchmarks"
+harness = false
+
+[[bench]]
+name = "encryption_benchmarks"
+harness = false

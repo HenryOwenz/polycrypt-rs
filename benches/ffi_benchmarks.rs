@@ -12,7 +12,7 @@ fn bench_ffi_encrypt(c: &mut Criterion) {
                 black_box(plaintext.len()),
                 black_box(key.as_ptr()),
             );
-            ffi::free_byte_array(result);
+            ffi::free_ffi_result(result);
         })
     });
 }
@@ -24,14 +24,14 @@ fn bench_ffi_decrypt(c: &mut Criterion) {
     c.bench_function("ffi_decrypt", |b| {
         b.iter(|| {
             let result = ffi::decrypt(
-                black_box(encrypted.data),
-                black_box(encrypted.len),
+                black_box(encrypted.data.data),
+                black_box(encrypted.data.len),
                 black_box(key.as_ptr()),
             );
-            ffi::free_byte_array(result);
+            ffi::free_ffi_result(result);
         })
     });
-    ffi::free_byte_array(encrypted);
+    ffi::free_ffi_result(encrypted);
 }
 
 fn bench_ffi_encrypt_fields(c: &mut Criterion) {
@@ -48,7 +48,7 @@ fn bench_ffi_encrypt_fields(c: &mut Criterion) {
                 black_box(fields_cstring.as_ptr()),
                 black_box(key.as_ptr()),
             );
-            ffi::free_c_char(result);
+            ffi::free_ffi_result(result);
         })
     });
 }
@@ -59,23 +59,22 @@ fn bench_ffi_decrypt_fields(c: &mut Criterion) {
     let fields = r#"["sensitive_data","array_field"]"#;
     let record_cstring = CString::new(record).unwrap();
     let fields_cstring = CString::new(fields).unwrap();
-    let encrypted = ffi::encrypt_fields(
-        record_cstring.as_ptr(),
-        fields_cstring.as_ptr(),
-        key.as_ptr(),
-    );
+
+    let encrypted = ffi::encrypt_fields(record_cstring.as_ptr(), fields_cstring.as_ptr(), key.as_ptr());
 
     c.bench_function("ffi_decrypt_fields", |b| {
         b.iter(|| {
             let result = ffi::decrypt_fields(
-                black_box(encrypted),
+                black_box(encrypted.data.data),
+                black_box(encrypted.data.len),
                 black_box(fields_cstring.as_ptr()),
                 black_box(key.as_ptr()),
             );
-            ffi::free_c_char(result);
+            ffi::free_ffi_result(result);
         })
     });
-    ffi::free_c_char(encrypted);
+
+    ffi::free_ffi_result(encrypted);
 }
 
 fn bench_ffi_encrypt_fields_in_batch(c: &mut Criterion) {
@@ -95,7 +94,7 @@ fn bench_ffi_encrypt_fields_in_batch(c: &mut Criterion) {
                 black_box(fields_cstring.as_ptr()),
                 black_box(key.as_ptr()),
             );
-            ffi::free_c_char(result);
+            ffi::free_ffi_result(result);
         })
     });
 }
@@ -109,33 +108,22 @@ fn bench_ffi_decrypt_fields_in_batch(c: &mut Criterion) {
     let fields = r#"["sensitive_data","array_field"]"#;
     let records_cstring = CString::new(records).unwrap();
     let fields_cstring = CString::new(fields).unwrap();
-    let encrypted = ffi::encrypt_fields_in_batch(
-        records_cstring.as_ptr(),
-        fields_cstring.as_ptr(),
-        key.as_ptr(),
-    );
+
+    let encrypted = ffi::encrypt_fields_in_batch(records_cstring.as_ptr(), fields_cstring.as_ptr(), key.as_ptr());
 
     c.bench_function("ffi_decrypt_fields_in_batch", |b| {
         b.iter(|| {
             let result = ffi::decrypt_fields_in_batch(
-                black_box(encrypted),
+                black_box(encrypted.data.data),
+                black_box(encrypted.data.len),
                 black_box(fields_cstring.as_ptr()),
                 black_box(key.as_ptr()),
             );
-            ffi::free_c_char(result);
+            ffi::free_ffi_result(result);
         })
     });
-    ffi::free_c_char(encrypted);
-}
 
-fn bench_ffi_allocate_free_buffer(c: &mut Criterion) {
-    let size = 1024;
-    c.bench_function("ffi_allocate_free_buffer", |b| {
-        b.iter(|| {
-            let buffer = ffi::allocate_buffer(black_box(size));
-            ffi::free_buffer(buffer);
-        })
-    });
+    ffi::free_ffi_result(encrypted);
 }
 
 criterion_group!(
@@ -145,7 +133,6 @@ criterion_group!(
     bench_ffi_encrypt_fields,
     bench_ffi_decrypt_fields,
     bench_ffi_encrypt_fields_in_batch,
-    bench_ffi_decrypt_fields_in_batch,
-    bench_ffi_allocate_free_buffer
+    bench_ffi_decrypt_fields_in_batch
 );
 criterion_main!(benches);
