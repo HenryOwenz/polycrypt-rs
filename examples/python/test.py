@@ -1,13 +1,11 @@
 import unittest
 from polycrypt.polycrypt import PolyCrypt, init_logger
 
-# Initialize logger once at the module level
-# init_logger()
-
 class TestPolyCrypt(unittest.TestCase):
     def setUp(self):
-        self.key = bytes([0] * 32)
+        self.key = b'0' * 32
         self.pc = PolyCrypt(self.key)
+        init_logger()
 
     def test_encrypt_decrypt(self):
         plaintext = b"Hello, world!"
@@ -25,8 +23,8 @@ class TestPolyCrypt(unittest.TestCase):
         fields_to_encrypt = ["sensitive_data", "array_field"]
 
         encrypted_record = self.pc.encrypt_fields(record, fields_to_encrypt)
-        self.assertNotEqual(record["sensitive_data"], encrypted_record["sensitive_data"])
-        self.assertNotEqual(record["array_field"], encrypted_record["array_field"])
+        self.assertNotEqual(encrypted_record["sensitive_data"], record["sensitive_data"])
+        self.assertNotEqual(encrypted_record["array_field"], record["array_field"])
 
         decrypted_record = self.pc.decrypt_fields(encrypted_record, fields_to_encrypt)
         self.assertEqual(record, decrypted_record)
@@ -49,9 +47,9 @@ class TestPolyCrypt(unittest.TestCase):
         fields_to_encrypt = ["sensitive_data", "array_field"]
 
         encrypted_records = self.pc.encrypt_fields_in_batch(records, fields_to_encrypt)
-        for i, encrypted_record in enumerate(encrypted_records):
-            self.assertNotEqual(records[i]["sensitive_data"], encrypted_record["sensitive_data"])
-            self.assertNotEqual(records[i]["array_field"], encrypted_record["array_field"])
+        for record, encrypted_record in zip(records, encrypted_records):
+            self.assertNotEqual(encrypted_record["sensitive_data"], record["sensitive_data"])
+            self.assertNotEqual(encrypted_record["array_field"], record["array_field"])
 
         decrypted_records = self.pc.decrypt_fields_in_batch(encrypted_records, fields_to_encrypt)
         self.assertEqual(records, decrypted_records)
