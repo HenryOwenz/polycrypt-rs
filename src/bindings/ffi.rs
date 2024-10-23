@@ -1,7 +1,7 @@
 use crate::crypto::encryption;
 use crate::error::PolyCryptError;
 use serde_json::Value;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 use std::slice;
 
@@ -180,4 +180,31 @@ pub extern "C" fn free_ffi_result(result: FFIResult) {
             let _ = Box::from_raw(slice::from_raw_parts_mut(result.data.data, result.data.len));
         }
     }
+}
+
+// Add these new functions at the end of the file
+
+#[no_mangle]
+pub extern "C" fn free_byte_array(arr: ByteArray) {
+    if !arr.data.is_null() {
+        unsafe {
+            let _ = Box::from_raw(slice::from_raw_parts_mut(arr.data, arr.len));
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn free_c_char(s: *mut c_char) {
+    if !s.is_null() {
+        unsafe {
+            let _ = CString::from_raw(s);
+        }
+    }
+}
+
+#[no_mangle]
+pub extern "C" fn init_logger() {
+    // Initialize the logger here
+    // You may need to add a dependency on the `log` crate and implement this function
+    // For now, we'll leave it as a no-op
 }
