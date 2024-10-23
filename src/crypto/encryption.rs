@@ -1,12 +1,12 @@
-use aes::Aes256;
-use cbc::cipher::{KeyIvInit, BlockEncryptMut, BlockDecryptMut};
-use cipher::block_padding::Pkcs7;
-use rand::Rng;
 use crate::error::PolyCryptError;
 use crate::Logger;
-use serde_json::{json, Value};
+use aes::Aes256;
 use base64;
+use cbc::cipher::{BlockDecryptMut, BlockEncryptMut, KeyIvInit};
+use cipher::block_padding::Pkcs7;
 use log::debug;
+use rand::Rng;
+use serde_json::{json, Value};
 
 const AES_BLOCK_SIZE: usize = 16;
 
@@ -51,7 +51,9 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptEr
     // logger.info("Starting decryption", Some(json!({"ciphertext_length": ciphertext.len()})));
 
     if ciphertext.len() < AES_BLOCK_SIZE {
-        return Err(PolyCryptError::DecryptionError("Ciphertext too short".to_string()));
+        return Err(PolyCryptError::DecryptionError(
+            "Ciphertext too short".to_string(),
+        ));
     }
 
     let (iv, ciphertext) = ciphertext.split_at(AES_BLOCK_SIZE);
@@ -77,9 +79,16 @@ pub fn decrypt(ciphertext: &[u8], key: &[u8; 32]) -> Result<Vec<u8>, PolyCryptEr
     Ok(buffer)
 }
 
-pub fn decrypt_fields(record: &Value, fields_to_decrypt: &[String], key: &[u8; 32]) -> Result<Value, PolyCryptError> {
+pub fn decrypt_fields(
+    record: &Value,
+    fields_to_decrypt: &[String],
+    key: &[u8; 32],
+) -> Result<Value, PolyCryptError> {
     let logger = Logger::new(json!({"operation": "decrypt_fields"}));
-    logger.info("Starting field decryption", Some(json!({"fields": fields_to_decrypt})));
+    logger.info(
+        "Starting field decryption",
+        Some(json!({"fields": fields_to_decrypt})),
+    );
 
     let mut decrypted_record = record.clone();
 
@@ -110,9 +119,16 @@ pub fn decrypt_fields(record: &Value, fields_to_decrypt: &[String], key: &[u8; 3
     Ok(decrypted_record)
 }
 
-pub fn encrypt_fields(record: &Value, fields_to_encrypt: &[String], key: &[u8; 32]) -> Result<Value, PolyCryptError> {
+pub fn encrypt_fields(
+    record: &Value,
+    fields_to_encrypt: &[String],
+    key: &[u8; 32],
+) -> Result<Value, PolyCryptError> {
     let logger = Logger::new(json!({"operation": "encrypt_fields"}));
-    logger.info("Starting field encryption", Some(json!({"fields": fields_to_encrypt})));
+    logger.info(
+        "Starting field encryption",
+        Some(json!({"fields": fields_to_encrypt})),
+    );
 
     let mut encrypted_record = record.clone();
 
@@ -142,12 +158,26 @@ pub fn encrypt_fields(record: &Value, fields_to_encrypt: &[String], key: &[u8; 3
     Ok(encrypted_record)
 }
 
-pub fn decrypt_fields_in_batch(records: &[Value], fields_to_decrypt: &[String], key: &[u8; 32]) -> Result<Vec<Value>, PolyCryptError> {
-    records.iter().map(|record| decrypt_fields(record, fields_to_decrypt, key)).collect()
+pub fn decrypt_fields_in_batch(
+    records: &[Value],
+    fields_to_decrypt: &[String],
+    key: &[u8; 32],
+) -> Result<Vec<Value>, PolyCryptError> {
+    records
+        .iter()
+        .map(|record| decrypt_fields(record, fields_to_decrypt, key))
+        .collect()
 }
 
-pub fn encrypt_fields_in_batch(records: &[Value], fields_to_encrypt: &[String], key: &[u8; 32]) -> Result<Vec<Value>, PolyCryptError> {
-    records.iter().map(|record| encrypt_fields(record, fields_to_encrypt, key)).collect()
+pub fn encrypt_fields_in_batch(
+    records: &[Value],
+    fields_to_encrypt: &[String],
+    key: &[u8; 32],
+) -> Result<Vec<Value>, PolyCryptError> {
+    records
+        .iter()
+        .map(|record| encrypt_fields(record, fields_to_encrypt, key))
+        .collect()
 }
 
 #[cfg(test)]
@@ -162,7 +192,7 @@ mod tests {
 
         let encrypted = encrypt(plaintext, &key).unwrap();
         assert_ne!(encrypted, plaintext);
-        
+
         let decrypted = decrypt(&encrypted, &key).unwrap();
         assert_eq!(decrypted, plaintext);
     }
@@ -193,11 +223,13 @@ mod tests {
         let plaintext = b"Hello, world!";
         let mut key = [0u8; 32];
         key[..31].copy_from_slice(&[1u8; 31]); // Fill first 31 bytes with 1s
-        
+
         // Create a wrapper function that accepts &[u8] instead of &[u8; 32]
         fn encrypt_wrapper(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, PolyCryptError> {
             if key.len() != 32 {
-                return Err(PolyCryptError::InvalidKeyError("Key must be 32 bytes long".to_string()));
+                return Err(PolyCryptError::InvalidKeyError(
+                    "Key must be 32 bytes long".to_string(),
+                ));
             }
             let key_array: [u8; 32] = key.try_into().unwrap();
             encrypt(plaintext, &key_array)
@@ -206,7 +238,7 @@ mod tests {
         // Test with invalid key length
         let result = encrypt_wrapper(plaintext, &key[..31]);
         assert!(result.is_err());
-        
+
         // Test with valid key length (should succeed)
         let result = encrypt_wrapper(plaintext, &key);
         assert!(result.is_ok());

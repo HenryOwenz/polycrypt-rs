@@ -1,6 +1,6 @@
-use log::{info, error};
-use serde_json::{json, Value};
 use chrono;
+use log::{error, info};
+use serde_json::{json, Value};
 
 pub struct Logger {
     context: Value,
@@ -21,7 +21,12 @@ impl Logger {
         error!("{}", log_entry);
     }
 
-    fn create_log_entry(&self, level: &str, message: &str, additional_context: Option<Value>) -> String {
+    fn create_log_entry(
+        &self,
+        level: &str,
+        message: &str,
+        additional_context: Option<Value>,
+    ) -> String {
         let mut entry = json!({
             "level": level,
             "message": message,

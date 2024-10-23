@@ -10,10 +10,10 @@ fn test_encryption() {
     let encrypted = encryption::encrypt(plaintext, &key).unwrap();
 
     assert_ne!(encrypted, plaintext);
-    
+
     // Check that the encrypted data is at least as long as the plaintext + IV
     assert!(encrypted.len() >= plaintext.len() + 16);
-    
+
     // Check that the encrypted data is a multiple of the block size (16 bytes for AES)
     assert_eq!(encrypted.len() % 16, 0);
 
@@ -33,11 +33,11 @@ fn test_field_encryption() {
     let fields_to_encrypt = vec!["sensitive_data".to_string(), "array_field".to_string()];
 
     let encrypted_record = encryption::encrypt_fields(&record, &fields_to_encrypt, &key).unwrap();
-    
+
     // Check that specified fields are encrypted
     assert_ne!(encrypted_record["sensitive_data"], record["sensitive_data"]);
     assert_ne!(encrypted_record["array_field"], record["array_field"]);
-    
+
     // Check that non-specified fields remain unchanged
     assert_eq!(encrypted_record["id"], record["id"]);
     assert_eq!(encrypted_record["name"], record["name"]);

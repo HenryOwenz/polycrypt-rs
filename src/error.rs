@@ -1,8 +1,7 @@
-use thiserror::Error;
 use base64::DecodeError;
 use std::string::FromUtf8Error;
 
-#[derive(Error, Debug)]
+#[derive(Debug, thiserror::Error)]
 pub enum PolyCryptError {
     #[error("Encryption error: {0}")]
     EncryptionError(String),

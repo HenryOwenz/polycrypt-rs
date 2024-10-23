@@ -1,11 +1,11 @@
+pub mod bindings;
+pub mod crypto;
 pub mod error;
 pub mod logger;
-pub mod crypto;
-pub mod bindings;
 
+pub use bindings::ffi::{decrypt, encrypt, free_ffi_result, ByteArray, FFIResult};
 pub use error::PolyCryptError;
 pub use logger::Logger;
-pub use bindings::ffi::{ByteArray, encrypt, decrypt, free_byte_array};
 
 pub struct PolyCrypt {
     logger: Logger,
