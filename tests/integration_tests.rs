@@ -42,7 +42,8 @@ fn test_field_encryption() {
     assert_eq!(encrypted_record["id"], record["id"]);
     assert_eq!(encrypted_record["name"], record["name"]);
 
-    let decrypted_record = encryption::decrypt_fields(&encrypted_record, &fields_to_encrypt, &key).unwrap();
+    let decrypted_record =
+        encryption::decrypt_fields(&encrypted_record, &fields_to_encrypt, &key).unwrap();
     assert_eq!(decrypted_record, record);
 }
 
@@ -55,7 +56,9 @@ fn test_encryption_error_handling() {
     // Create a wrapper function that accepts &[u8] instead of &[u8; 32]
     fn encrypt_wrapper(plaintext: &[u8], key: &[u8]) -> Result<Vec<u8>, PolyCryptError> {
         if key.len() != 32 {
-            return Err(PolyCryptError::InvalidKeyError("Key must be 32 bytes long".to_string()));
+            return Err(PolyCryptError::InvalidKeyError(
+                "Key must be 32 bytes long".to_string(),
+            ));
         }
         let key_array: [u8; 32] = key.try_into().unwrap();
         encryption::encrypt(plaintext, &key_array)

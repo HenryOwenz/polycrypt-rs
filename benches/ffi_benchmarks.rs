@@ -60,7 +60,11 @@ fn bench_ffi_decrypt_fields(c: &mut Criterion) {
     let record_cstring = CString::new(record).unwrap();
     let fields_cstring = CString::new(fields).unwrap();
 
-    let encrypted = ffi::encrypt_fields(record_cstring.as_ptr(), fields_cstring.as_ptr(), key.as_ptr());
+    let encrypted = ffi::encrypt_fields(
+        record_cstring.as_ptr(),
+        fields_cstring.as_ptr(),
+        key.as_ptr(),
+    );
 
     c.bench_function("ffi_decrypt_fields", |b| {
         b.iter(|| {
@@ -109,7 +113,11 @@ fn bench_ffi_decrypt_fields_in_batch(c: &mut Criterion) {
     let records_cstring = CString::new(records).unwrap();
     let fields_cstring = CString::new(fields).unwrap();
 
-    let encrypted = ffi::encrypt_fields_in_batch(records_cstring.as_ptr(), fields_cstring.as_ptr(), key.as_ptr());
+    let encrypted = ffi::encrypt_fields_in_batch(
+        records_cstring.as_ptr(),
+        fields_cstring.as_ptr(),
+        key.as_ptr(),
+    );
 
     c.bench_function("ffi_decrypt_fields_in_batch", |b| {
         b.iter(|| {

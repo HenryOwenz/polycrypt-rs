@@ -85,9 +85,18 @@ bench:
 	@echo "$(DASH_LINE)"
 	@echo "$(CYAN)Running benchmarks for polycrypt-rs...$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
-	@$(CARGO) bench
+	@$(CARGO) bench --bench db_benchmarks
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Benchmarks completed.$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+
+bench-heavy:
+	@echo "$(DASH_LINE)"
+	@echo "$(CYAN)Running heavy benchmarks...$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+	@ENABLE_HEAVY_BENCHMARKS=1 $(CARGO) bench
+	@echo "$(DASH_LINE)"
+	@echo "$(GREEN)Heavy benchmarks completed.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
 
 # Check the project for errors

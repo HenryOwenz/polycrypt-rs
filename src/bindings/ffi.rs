@@ -34,7 +34,10 @@ fn to_ffi_result(result: Result<Vec<u8>, PolyCryptError>) -> FFIResult {
         Err(e) => {
             eprintln!("Error: {:?}", e);
             FFIResult {
-                data: ByteArray { data: std::ptr::null_mut(), len: 0 },
+                data: ByteArray {
+                    data: std::ptr::null_mut(),
+                    len: 0,
+                },
                 error_code: -1,
             }
         }
@@ -45,12 +48,18 @@ fn validate_key(key: *const u8) -> Result<[u8; 32], FFIResult> {
     let key_slice = unsafe { slice::from_raw_parts(key, 32) };
     if key_slice.len() != 32 {
         return Err(FFIResult {
-            data: ByteArray { data: std::ptr::null_mut(), len: 0 },
+            data: ByteArray {
+                data: std::ptr::null_mut(),
+                len: 0,
+            },
             error_code: -1,
         });
     }
     key_slice.try_into().map_err(|_| FFIResult {
-        data: ByteArray { data: std::ptr::null_mut(), len: 0 },
+        data: ByteArray {
+            data: std::ptr::null_mut(),
+            len: 0,
+        },
         error_code: -1,
     })
 }
@@ -58,7 +67,7 @@ fn validate_key(key: *const u8) -> Result<[u8; 32], FFIResult> {
 #[no_mangle]
 pub extern "C" fn encrypt(plaintext: *const u8, plaintext_len: usize, key: *const u8) -> FFIResult {
     let plaintext_slice = unsafe { slice::from_raw_parts(plaintext, plaintext_len) };
-    
+
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
@@ -70,16 +79,23 @@ pub extern "C" fn encrypt(plaintext: *const u8, plaintext_len: usize, key: *cons
             error_code: 0,
         },
         Err(_) => FFIResult {
-            data: ByteArray { data: std::ptr::null_mut(), len: 0 },
+            data: ByteArray {
+                data: std::ptr::null_mut(),
+                len: 0,
+            },
             error_code: -1,
         },
     }
 }
 
 #[no_mangle]
-pub extern "C" fn decrypt(ciphertext: *const u8, ciphertext_len: usize, key: *const u8) -> FFIResult {
+pub extern "C" fn decrypt(
+    ciphertext: *const u8,
+    ciphertext_len: usize,
+    key: *const u8,
+) -> FFIResult {
     let ciphertext_slice = unsafe { slice::from_raw_parts(ciphertext, ciphertext_len) };
-    
+
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
@@ -91,14 +107,21 @@ pub extern "C" fn decrypt(ciphertext: *const u8, ciphertext_len: usize, key: *co
             error_code: 0,
         },
         Err(_) => FFIResult {
-            data: ByteArray { data: std::ptr::null_mut(), len: 0 },
+            data: ByteArray {
+                data: std::ptr::null_mut(),
+                len: 0,
+            },
             error_code: -1,
         },
     }
 }
 
 #[no_mangle]
-pub extern "C" fn encrypt_fields(record: *const c_char, fields_to_encrypt: *const c_char, key: *const u8) -> FFIResult {
+pub extern "C" fn encrypt_fields(
+    record: *const c_char,
+    fields_to_encrypt: *const c_char,
+    key: *const u8,
+) -> FFIResult {
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
@@ -117,7 +140,12 @@ pub extern "C" fn encrypt_fields(record: *const c_char, fields_to_encrypt: *cons
 }
 
 #[no_mangle]
-pub extern "C" fn decrypt_fields(encrypted: *const u8, encrypted_len: usize, fields_to_decrypt: *const c_char, key: *const u8) -> FFIResult {
+pub extern "C" fn decrypt_fields(
+    encrypted: *const u8,
+    encrypted_len: usize,
+    fields_to_decrypt: *const c_char,
+    key: *const u8,
+) -> FFIResult {
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
@@ -136,7 +164,11 @@ pub extern "C" fn decrypt_fields(encrypted: *const u8, encrypted_len: usize, fie
 }
 
 #[no_mangle]
-pub extern "C" fn encrypt_fields_in_batch(records: *const c_char, fields_to_encrypt: *const c_char, key: *const u8) -> FFIResult {
+pub extern "C" fn encrypt_fields_in_batch(
+    records: *const c_char,
+    fields_to_encrypt: *const c_char,
+    key: *const u8,
+) -> FFIResult {
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
@@ -155,7 +187,12 @@ pub extern "C" fn encrypt_fields_in_batch(records: *const c_char, fields_to_encr
 }
 
 #[no_mangle]
-pub extern "C" fn decrypt_fields_in_batch(encrypted: *const u8, encrypted_len: usize, fields_to_decrypt: *const c_char, key: *const u8) -> FFIResult {
+pub extern "C" fn decrypt_fields_in_batch(
+    encrypted: *const u8,
+    encrypted_len: usize,
+    fields_to_decrypt: *const c_char,
+    key: *const u8,
+) -> FFIResult {
     let key_array = match validate_key(key) {
         Ok(k) => k,
         Err(e) => return e,
