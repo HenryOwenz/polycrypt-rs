@@ -11,6 +11,7 @@ GO_OUTPUT_BINARY := polycrypt_ffi_go
 EXAMPLES_DIR := examples
 GO_EXAMPLES_DIR := $(EXAMPLES_DIR)/go
 PYTHON_EXAMPLES_DIR := $(EXAMPLES_DIR)/python
+DB_SETUP_DIR := db/setup
 GO_ENTRY_POINT := main.go
 PYTHON_ENTRY_POINT := main.py
 PYTHON_TEST_ENTRY_POINT := test.py
@@ -41,6 +42,7 @@ build:
 	@echo "$(CYAN)Copying $(LIB_NAME) to Go and Python packages...$(RESET_COLOR)"
 	@cp $(RELEASE_DIR)/$(LIB_NAME) $(GO_EXAMPLES_DIR)/polycrypt/
 	@cp $(RELEASE_DIR)/$(LIB_NAME) $(PYTHON_EXAMPLES_DIR)/polycrypt/
+	@cp $(RELEASE_DIR)/$(LIB_NAME) $(DB_SETUP_DIR)/polycrypt/
 	@echo "$(GREEN)Library copied successfully.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
 
@@ -151,26 +153,6 @@ doc:
 	@$(CARGO) doc --no-deps
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Documentation generated.$(RESET_COLOR)"
-	@echo "$(DASH_LINE)"
-
-# Install the binary
-install: build
-	@echo "$(DASH_LINE)"
-	@echo "$(CYAN)Installing polycrypt-rs...$(RESET_COLOR)"
-	@echo "$(DASH_LINE)"
-	@$(CARGO) install --path .
-	@echo "$(DASH_LINE)"
-	@echo "$(GREEN)Installation completed.$(RESET_COLOR)"
-	@echo "$(DASH_LINE)"
-
-# Uninstall the binary
-uninstall:
-	@echo "$(DASH_LINE)"
-	@echo "$(CYAN)Uninstalling polycrypt-rs...$(RESET_COLOR)"
-	@echo "$(DASH_LINE)"
-	@$(CARGO) uninstall $(BINARY_NAME)
-	@echo "$(DASH_LINE)"
-	@echo "$(GREEN)Uninstallation completed.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
 
 # FFI bindings tests

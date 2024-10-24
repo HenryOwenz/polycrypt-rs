@@ -47,6 +47,8 @@ These native libraries wrap the FFI calls and provide a more natural API for eac
 - Rust 1.55 or higher
 - Go 1.22 or higher (for Go bindings)
 - Python 3.6 or higher (for Python bindings)
+- Criterion 0.6.0 or higher (for benchmarking)
+- Linux build-essentials (for building on Linux)
 
 ## Installation
 
