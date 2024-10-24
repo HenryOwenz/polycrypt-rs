@@ -6,8 +6,12 @@ use std::sync::Mutex;
 use std::path::PathBuf;
 use std::env;
 use std::fs;
+use std::ffi::CString;
+use polycrypt_rs::bindings::ffi;
 
-const BATCH_SIZE: usize = 100_000; // Set this to your desired batch size
+const BATCH_SIZES: [usize; 5] = [100, 1_000, 10_000, 100_000, 1_000_000];
+const BATCH_SIZE_INDEX: usize = 0; // Change this index to select different batch sizes
+const BATCH_SIZE: usize = BATCH_SIZES[BATCH_SIZE_INDEX];
 
 lazy_static! {
     static ref DB_PATH: String = {
@@ -196,11 +200,82 @@ fn bench_db_encrypt_fields_in_batches(c: &mut Criterion) {
 }
 */
 
+fn bench_db_ffi_encrypt_fields_in_batch(c: &mut Criterion) {
+    let conn = DB_CONN.lock().unwrap();
+    let key = [0u8; 32];
+
+    let mut stmt = conn.prepare(&format!("SELECT data FROM plain_records LIMIT {}", BATCH_SIZE)).unwrap();
+    let records: Vec<String> = stmt.query_map([], |row| row.get(0))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
+    let records_count = records.len();
+    let records_json = serde_json::to_string(&records).unwrap();
+    let records_cstring = CString::new(records_json).unwrap();
+    let fields = serde_json::to_string(&FIELDS_TO_ENCRYPT).unwrap();
+    let fields_cstring = CString::new(fields).unwrap();
+
+    c.bench_function(&format!("db_ffi_encrypt_fields_in_batch ({})", BATCH_SIZE), |b| {
+        b.iter(|| {
+            let result = ffi::encrypt_fields_in_batch(
+                black_box(records_cstring.as_ptr()),
+                black_box(fields_cstring.as_ptr()),
+                black_box(key.as_ptr()),
+            );
+            ffi::free_ffi_result(result);
+        })
+    });
+    
+    println!("Number of records processed for FFI encryption: {}", records_count);
+}
+
+fn bench_db_ffi_decrypt_fields_in_batch(c: &mut Criterion) {
+    let conn = DB_CONN.lock().unwrap();
+    let key = [0u8; 32];
+
+    let mut stmt = conn.prepare(&format!("SELECT data FROM encrypted_records LIMIT {}", BATCH_SIZE)).unwrap();
+    let records: Vec<String> = stmt.query_map([], |row| row.get(0))
+        .unwrap()
+        .map(|r| r.unwrap())
+        .collect();
+    let records_count = records.len();
+    let records_json = serde_json::to_string(&records).unwrap();
+    let records_cstring = CString::new(records_json).unwrap();
+    let fields = serde_json::to_string(&FIELDS_TO_ENCRYPT).unwrap();
+    let fields_cstring = CString::new(fields).unwrap();
+
+    // First, encrypt the data
+    let encrypted = ffi::encrypt_fields_in_batch(
+        records_cstring.as_ptr(),
+        fields_cstring.as_ptr(),
+        key.as_ptr(),
+    );
+
+    c.bench_function(&format!("db_ffi_decrypt_fields_in_batch ({})", BATCH_SIZE), |b| {
+        b.iter(|| {
+            let result = ffi::decrypt_fields_in_batch(
+                black_box(encrypted.data.data),
+                black_box(encrypted.data.len),
+                black_box(fields_cstring.as_ptr()),
+                black_box(key.as_ptr()),
+            );
+            ffi::free_ffi_result(result);
+        })
+    });
+
+    ffi::free_ffi_result(encrypted);
+    
+    println!("Number of records processed for FFI decryption: {}", records_count);
+}
+
+// Modify the criterion_group! macro to include the new benchmarks
 criterion_group!(
     benches,
     bench_db_query,
+    bench_db_ffi_encrypt_fields_in_batch,
+    bench_db_ffi_decrypt_fields_in_batch,
     bench_db_encrypt_fields_in_batch,
-    bench_db_decrypt_fields_in_batch
+    bench_db_decrypt_fields_in_batch,
 );
 
 criterion_main!(benches);
