@@ -2,13 +2,28 @@ import ctypes
 import os
 import json
 import sys
+import platform
+
+# Determine the appropriate library extension based on the platform
+def get_lib_name():
+    system = platform.system().lower()
+    if system == 'linux':
+        return 'libpolycrypt_rs.so'
+    elif system == 'darwin':  # macOS
+        return 'libpolycrypt_rs.dylib'
+    elif system == 'windows':
+        return 'libpolycrypt_rs.dll'
+    else:
+        raise OSError(f"Unsupported platform: {system}")
 
 # Load the shared library
-lib_path = os.path.join(os.path.dirname(__file__), 'libpolycrypt_rs.so')
+lib_name = get_lib_name()
+lib_path = os.path.join(os.path.dirname(__file__), lib_name)
 try:
     lib = ctypes.CDLL(lib_path)
 except OSError as e:
     print(f"Error loading the library: {e}")
+    print(f"Attempted to load: {lib_path}")
     sys.exit(1)
 
 # Define the ByteArray struct

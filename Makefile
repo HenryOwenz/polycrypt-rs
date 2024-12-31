@@ -15,7 +15,21 @@ DB_SETUP_DIR := db/setup
 GO_ENTRY_POINT := main.go
 PYTHON_ENTRY_POINT := main.py
 PYTHON_TEST_ENTRY_POINT := test.py
-LIB_NAME := libpolycrypt_rs.so
+
+# Determine OS-specific variables
+ifeq ($(OS),Windows_NT)
+    LIB_EXT := dll
+else
+    UNAME_S := $(shell uname -s)
+    ifeq ($(UNAME_S),Linux)
+        LIB_EXT := so
+    endif
+    ifeq ($(UNAME_S),Darwin)
+        LIB_EXT := dylib
+    endif
+endif
+
+LIB_NAME := libpolycrypt_rs.$(LIB_EXT)
 
 # Colors
 CYAN := \033[36m
@@ -137,10 +151,9 @@ clean:
 	@echo "$(CYAN)Cleaning polycrypt-rs project...$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
 	@$(CARGO) clean
-	@rm -f $(EXAMPLES_DIR)/$(GO_OUTPUT_BINARY)
-	@rm -f $(GO_EXAMPLES_DIR)/polycrypt/$(LIB_NAME)
+	@rm -f $(GO_EXAMPLES_DIR)/polycrypt/libpolycrypt_rs.*
 	@rm -f $(GO_EXAMPLES_DIR)/polycrypt_ffi_go
-	@rm -f $(PYTHON_EXAMPLES_DIR)/polycrypt/$(LIB_NAME)
+	@rm -f $(PYTHON_EXAMPLES_DIR)/polycrypt/libpolycrypt_rs.*
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Cleaning completed.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"

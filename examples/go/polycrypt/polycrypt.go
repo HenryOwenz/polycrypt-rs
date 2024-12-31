@@ -1,7 +1,9 @@
 package polycrypt
 
 /*
-#cgo LDFLAGS: -L${SRCDIR} -lpolycrypt_rs
+#cgo linux LDFLAGS: -L${SRCDIR} -lpolycrypt_rs
+#cgo darwin LDFLAGS: -L${SRCDIR} -lpolycrypt_rs
+#cgo windows LDFLAGS: -L${SRCDIR} -lpolycrypt_rs
 #include <stdlib.h>
 #include <stdint.h>
 

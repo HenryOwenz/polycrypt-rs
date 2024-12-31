@@ -6,6 +6,9 @@ out/
 */**/libpolycrypt_rs.so
 */**/libpolycrypt_rs.dylib
 */**/libpolycrypt_rs.dll
+*/**/.so
+*/**/.dylib
+*/**/.dll
 */**/venv
 diff.txt
 git.log
