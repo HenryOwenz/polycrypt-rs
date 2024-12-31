@@ -576,6 +576,7 @@ dependencies = [
  "log",
  "once_cell",
  "rand",
+ "rayon",
  "rusqlite",
  "serde_json",
  "tempfile",

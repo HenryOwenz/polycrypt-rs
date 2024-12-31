@@ -9,7 +9,7 @@ use std::fs;
 use std::ffi::CString;
 use polycrypt_rs::bindings::ffi;
 
-const BATCH_SIZES: [usize; 5] = [100, 1_000, 10_000, 100_000, 1_000_000];
+const BATCH_SIZES: [usize; 6] = [1, 100, 1_000, 10_000, 100_000, 1_000_000];
 const BATCH_SIZE_INDEX: usize = 0; // Change this index to select different batch sizes
 const BATCH_SIZE: usize = BATCH_SIZES[BATCH_SIZE_INDEX];
 

@@ -11,3 +11,5 @@ diff.txt
 git.log
 polycrypt-rs.bench
 */**/polycrypt_benchmark.db
+*/**/*.db
+*/**/*.svg
