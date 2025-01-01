@@ -50,6 +50,16 @@ These native libraries wrap the FFI calls and provide a more natural API for eac
 - Criterion 0.6.0 or higher (for benchmarking)
 - Linux build-essentials (for building on Linux)
 
+## Cross Platform Development
+### macos (arm64)
+```bash
+# Install the musl cross-compiler
+brew install FiloSottile/musl-cross/musl-cross
+
+# Add the musl target to rust
+rustup target add x86_64-unknown-linux-musl
+```
+
 ## Installation
 
 1. Clone the repository:
