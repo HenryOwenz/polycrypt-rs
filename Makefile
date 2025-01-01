@@ -26,10 +26,14 @@ else
     endif
     ifeq ($(UNAME_S),Darwin)
         LIB_EXT := dylib
+        # For cross-compilation from Mac
+        CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER := x86_64-linux-musl-gcc
+        export CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER
     endif
 endif
 
 LIB_NAME := libpolycrypt_rs.$(LIB_EXT)
+LINUX_LIB_NAME := libpolycrypt_rs.so
 
 # Colors
 CYAN := \033[36m
@@ -59,6 +63,24 @@ build:
 	@cp $(RELEASE_DIR)/$(LIB_NAME) $(DB_SETUP_DIR)/polycrypt/
 	@echo "$(GREEN)Library copied successfully.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
+
+# Add cross-compilation target
+build-linux:
+	@echo "$(DASH_LINE)"
+	@echo "$(CYAN)Cross-compiling for Linux x86_64...$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+	@rustup target add x86_64-unknown-linux-musl
+	@RUSTFLAGS="-C target-feature=-crt-static" $(CARGO) build --release --target x86_64-unknown-linux-musl
+	@echo "$(GREEN)Linux build completed successfully.$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+	@echo "$(CYAN)Copying $(LINUX_LIB_NAME) to staging directory...$(RESET_COLOR)"
+	@mkdir -p $(RELEASE_DIR)/linux
+	@cp $(TARGET_DIR)/x86_64-unknown-linux-musl/release/$(LINUX_LIB_NAME) $(RELEASE_DIR)/linux/
+	@echo "$(GREEN)Linux library copied successfully.$(RESET_COLOR)"
+	@echo "$(DASH_LINE)"
+
+# Add a combined build target for both native and Linux
+build-all: build build-linux
 
 # Build for debug
 debug:
@@ -154,6 +176,7 @@ clean:
 	@rm -f $(GO_EXAMPLES_DIR)/polycrypt/libpolycrypt_rs.*
 	@rm -f $(GO_EXAMPLES_DIR)/polycrypt_ffi_go
 	@rm -f $(PYTHON_EXAMPLES_DIR)/polycrypt/libpolycrypt_rs.*
+	@rm -rf $(RELEASE_DIR)/linux
 	@echo "$(DASH_LINE)"
 	@echo "$(GREEN)Cleaning completed.$(RESET_COLOR)"
 	@echo "$(DASH_LINE)"
