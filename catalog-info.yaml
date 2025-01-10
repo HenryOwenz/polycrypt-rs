@@ -1,0 +1,57 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: polycrypt-rs
+  description: A multi-language cryptographic library wrapper designed to provide standardized encryption and decryption for sensitive data, with cross-language FFI capabilities.
+  annotations:
+    github.com/project-slug: HenryOwenz/polycrypt-rs
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - rust
+    - cryptography
+    - ffi
+    - go
+    - python
+    - encryption
+    - healthcare
+    - phi
+  links:
+    - url: https://github.com/HenryOwenz/polycrypt-rs
+      title: GitHub Repository
+      icon: github
+spec:
+  type: library
+  lifecycle: beta
+  owner: HenryOwenz
+  system: security-infrastructure
+  dependsOn:
+    - resource:default/aes-encryption
+  providesApis:
+    - polycrypt-rs-ffi-api
+    - polycrypt-rs-encryption-api
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: polycrypt-rs-ffi-api
+  description: Foreign Function Interface (FFI) API for polycrypt-rs
+spec:
+  type: ffi
+  lifecycle: beta
+  owner: HenryOwenz
+  definition: |
+    FFI bindings for Go and Python
+
+---
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: polycrypt-rs-encryption-api
+  description: Core encryption/decryption API for polycrypt-rs
+spec:
+  type: library
+  lifecycle: beta
+  owner: HenryOwenz
+  definition: |
+    Core cryptographic operations including field-level encryption 
