@@ -22,7 +22,7 @@ metadata:
 spec:
   type: library
   lifecycle: beta
-  owner: guests
+  owner: guest
   system: security-infrastructure
   dependsOn:
     - resource:default/aes-encryption
@@ -39,7 +39,7 @@ metadata:
 spec:
   type: ffi
   lifecycle: beta
-  owner: HenryOwenz
+  owner: guest
   definition: |
     FFI bindings for Go and Python
 
@@ -52,6 +52,6 @@ metadata:
 spec:
   type: library
   lifecycle: beta
-  owner: HenryOwenz
+  owner: guest
   definition: |
     Core cryptographic operations including field-level encryption 
