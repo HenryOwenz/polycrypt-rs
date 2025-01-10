@@ -22,7 +22,7 @@ metadata:
 spec:
   type: library
   lifecycle: beta
-  owner: HenryOwenz
+  owner: guests
   system: security-infrastructure
   dependsOn:
     - resource:default/aes-encryption
