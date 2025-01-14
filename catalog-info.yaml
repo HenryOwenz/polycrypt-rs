@@ -2,6 +2,7 @@ apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
   name: polycrypt-rs
+  namespace: icycloud
   description: A multi-language cryptographic library wrapper designed to provide standardized encryption and decryption for sensitive data, with cross-language FFI capabilities.
   annotations:
     github.com/project-slug: HenryOwenz/polycrypt-rs
@@ -24,17 +25,18 @@ spec:
   lifecycle: beta
   owner: icycloud/dev-team
   system: security-infrastructure
-  dependsOn:
-    - resource:default/aes-encryption
+  # dependsOn:
+  #  - resource:default/aes-encryption
   providesApis:
-    - polycrypt-rs-ffi-api
-    - polycrypt-rs-encryption-api
+    - icycloud/polycrypt-rs-ffi-api
+    - icycloud/polycrypt-rs-encryption-api
 
 ---
 apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
   name: polycrypt-rs-ffi-api
+  namespace: icycloud
   description: Foreign Function Interface (FFI) API for polycrypt-rs
 spec:
   type: ffi
@@ -48,6 +50,7 @@ apiVersion: backstage.io/v1alpha1
 kind: API
 metadata:
   name: polycrypt-rs-encryption-api
+  namespace: icycloud
   description: Core encryption/decryption API for polycrypt-rs
 spec:
   type: library
