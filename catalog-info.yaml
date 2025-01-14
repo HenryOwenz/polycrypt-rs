@@ -22,7 +22,7 @@ metadata:
 spec:
   type: library
   lifecycle: beta
-  owner: dev-team
+  owner: icycloud/dev-team
   system: security-infrastructure
   dependsOn:
     - resource:default/aes-encryption
@@ -39,7 +39,7 @@ metadata:
 spec:
   type: ffi
   lifecycle: beta
-  owner: dev-team
+  owner: icycloud/dev-team
   definition: |
     FFI bindings for Go and Python
 
@@ -52,6 +52,6 @@ metadata:
 spec:
   type: library
   lifecycle: beta
-  owner: dev-team
+  owner: icycloud/dev-team
   definition: |
     Core cryptographic operations including field-level encryption 
