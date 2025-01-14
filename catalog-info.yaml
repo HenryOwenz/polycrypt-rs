@@ -37,7 +37,7 @@ metadata:
   name: polycrypt-rs-ffi-api
   description: Foreign Function Interface (FFI) API for polycrypt-rs
 spec:
-  type: ffi
+  type: foreign-function-interface
   lifecycle: beta
   owner: dev-team
   definition: |
