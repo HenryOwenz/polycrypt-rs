@@ -6,7 +6,7 @@ metadata:
   description: A multi-language cryptographic library wrapper designed to provide standardized encryption and decryption for sensitive data, with cross-language FFI capabilities.
   annotations:
     github.com/project-slug: HenryOwenz/polycrypt-rs
-    backstage.io/techdocs-ref: dir:.
+    backstage.io/techdocs-ref: dir:./docs
   tags:
     - rust
     - cryptography
